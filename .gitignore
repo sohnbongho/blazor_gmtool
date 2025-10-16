@@ -39,3 +39,11 @@
 
 # debug information files
 *.dwo
+
+AdminTool/.vs/*
+AdminTool/Binary/*
+Library/obj/Debug/*
+Library/obj/Release/*
+
+AdminTool/AdminTool/obj/Debug/*
+AdminTool/AdminTool/obj/Release/*

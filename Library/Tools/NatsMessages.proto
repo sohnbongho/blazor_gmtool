@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package NatsMessages;
+
+import "message.proto";
+
+/*****************************************************************
+import "protoc-23.2-win64/include/google/protobuf/timestamp.proto";
+
+전체 메시지 : 클라이언트와 서버간 모든 메시지는 이곳에 추가하여야 한다.
+구글 프로토 버퍼는 상속 개념이 없기에 패킷을 받는 부분에서 분리를 해야 하기 때문이다.
+
+ProtoBuf의 기본 숫자 타입은 다음과 같습니다:
+int32
+int64
+uint32
+uint64 (Web에서는 double이 최대치이므로(15~17)까지만 지원한다.따라서 19자리가 있는 long은 지원을 안하기에 string으로 변환해서 보내야 한다.)
+sint32 (ZigZag encoding을 사용하여 음수를 효과적으로 인코딩)
+sint64 (ZigZag encoding을 사용하여 음수를 효과적으로 인코딩)
+fixed32 (Always 4 bytes, more efficient than int32 if values are often greater than 2^28.)
+fixed64 (Always 8 bytes)
+sfixed32 (Always 4 bytes)
+sfixed64 (Always 8 bytes)
+
+// DateTime to Timestamp
+DateTime currentDateTime = DateTime.UtcNow;
+Timestamp timestamp = Timestamp.FromDateTime(currentDateTime);
+
+// Timestamp to DateTime
+DateTime convertedDateTime = timestamp.ToDateTime();
+*****************************************************************/
+message NatsMessageWrapper {  
+	int32 from_server_id = 1;
+	int32 to_server_id = 2;
+	string target_char_seq = 3;
+	
+	oneof payload {
+		// 필드 번호의 최대값은 2^29-1(=536870911)까지 가능
+		// payload가 수가 많다고 메모리 증가하지 않고 실제 선택된 객체에 따라 크기가 다름
+		Messages.ConnectedResponse connected_response = 11;		
+
+		Messages.RoomUserInvitedRequest room_user_invited_request = 21;
+		Messages.ZoneUserInvitedRequest zone_user_invited_request = 22;
+				
+		// 채팅 방
+		Messages.ChatRoomCreatedNoti chat_room_created_noti = 31;
+		Messages.ChatRoomAddedChatNoti chat_room_added_chat_noti = 32; //채팅알림
+		Messages.ChatRoomLeavedNoti chat_room_leaved_noti = 33; //룸 나옴
+		Messages.ChatRoomAddedReadNoti chat_room_added_read_noti = 34; // 글읽음
+
+		// 알림 변경
+		Messages.AlertChangedNoti alert_changed_noti = 41; // 알림 변경
+
+		// GM Tool
+		Messages.GmtoolUserKickNoti gmtool_user_kick_noti = 51; // 유저킥
+		Messages.GmtoolChatNoti gmtool_chat_noti = 52; // gm 채팅
+
+		// 기능 오프
+		Messages.FeatureBlockChangedNoti feature_block_changed_noti = 53; 
+		Messages.EmergencyNoticeChangedNoti emergency_notice_changed_noti = 54; 		
+
+		// 유저들에게 다이빙 함을 알림
+		Messages.BroadcastDivingNoti broadcast_diving_noti = 55;
+
+		/**** Server 내부간 메시지 ****/
+		
+		// 유저 오프 처리		
+		UserOtherServerDuplicatedRequest user_other_server_duplicated_request = 61; 
+		UserOtherServerDuplicatedResponse user_other_server_duplicated_response = 62;
+
+		/**** end Server ****/
+	}
+}
+
+// User Kick
+message UserOtherServerDuplicatedRequest {		
+	string target_char_seq = 1;	
+	int32 from_server_id = 2;
+}
+
+message UserOtherServerDuplicatedResponse {  	
+	int32 error_code = 1;		
+	string target_char_seq = 2;	
+	int32 from_server_id = 3;
+}

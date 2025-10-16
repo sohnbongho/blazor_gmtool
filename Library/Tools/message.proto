@@ -1,0 +1,2864 @@
+syntax = "proto3";
+
+package Messages;
+
+//import "protoc-23.2-win64/include/google/protobuf/timestamp.proto";
+
+/*****************************************************************
+//
+
+전체 메시지 : 클라이언트와 서버간 모든 메시지는 이곳에 추가하여야 한다.
+구글 프로토 버퍼는 상속 개념이 없기에 패킷을 받는 부분에서 분리를 해야 하기 때문이다.
+
+ProtoBuf의 기본 숫자 타입은 다음과 같습니다:
+int32
+int64
+uint32
+uint64 (Web에서는 double이 최대치이므로(15~17)까지만 지원한다.따라서 19자리가 있는 long은 지원을 안하기에 string으로 변환해서 보내야 한다.)
+sint32 (ZigZag encoding을 사용하여 음수를 효과적으로 인코딩)
+sint64 (ZigZag encoding을 사용하여 음수를 효과적으로 인코딩)
+fixed32 (Always 4 bytes, more efficient than int32 if values are often greater than 2^28.)
+fixed64 (Always 8 bytes)
+sfixed32 (Always 4 bytes)
+sfixed64 (Always 8 bytes)
+
+// DateTime to Timestamp
+DateTime currentDateTime = DateTime.UtcNow;
+Timestamp timestamp = Timestamp.FromDateTime(currentDateTime);
+
+// Timestamp to DateTime
+DateTime convertedDateTime = timestamp.ToDateTime();
+*****************************************************************/
+message MessageWrapper {  
+	int32 message_size = 1;
+	oneof payload {
+		// 필드 번호의 최대값은 2^29-1(=536870911)까지 가능
+		// payload가 수가 많다고 메모리 증가하지 않고 실제 선택된 객체에 따라 크기가 다름
+		ConnectedResponse connected_response = 10;		
+		KeepAliveNoti keep_alive_noti = 11;		
+		KeepAliveRequest keep_alive_request = 12;		
+
+		/**** Zone Server ****/
+		// 존에 입장
+		ZoneEnterRequest zone_enter_request = 41;
+		ZoneEnterResponse zone_enter_response = 42;
+		ZoneEnterNoti zone_enter_noti = 43;
+		ZoneCharacterList zone_character_list = 44;		
+
+		// 초대에 의한 존서버 입장
+		ZoneEnterByInvitedRequest zone_enter_by_invited_request = 93;
+		ZoneEnterByInvitedResponse zone_enter_by_invited_response = 94;
+
+		// 존에서 떠남
+		ZoneLeaveNoti zone_leave_noti = 45;
+
+		// 존-캐릭터 이동
+		MoveRequest move_request = 46;
+		MoveNoti move_noti = 47;
+
+		// 유저 행동
+		BehaviorRequest behavior_request = 48;
+		BehaviorNoti behavior_noti = 49;
+
+		// 오브젝트 정보들 알림
+		ObjectListNoti object_list_noti = 50;		
+
+		// 오브젝트 사용
+		ObjectUseRequest object_use_request = 51;
+		ObjectUseResponse object_use_response = 52;
+		ObjectUseNoti object_use_noti = 53;
+
+		// 오브젝트 사용 끝
+		ObjectUseEndRequest object_use_end_request = 54;
+		ObjectUseEndResponse object_use_end_response = 55;
+		ObjectUseEndNoti object_use_end_noti = 56;
+
+		// 오브젝트 상태
+		ObjectStateRequest object_state_request = 57;
+		ObjectStateNoti object_state_noti = 58;
+		
+		// 오브젝트 소유자타입
+		ObjectOwnTypeRequest object_own_type_request = 59;
+		ObjectOwnTypeNoti object_own_type_noti = 60;
+
+		// 오브젝트 이동
+		ObjectTransformRequest object_transform_request = 61;
+		ObjectTransformNoti object_transform_noti = 62;
+
+		// Action 관련
+		PlayerActionRequest player_action_request = 63;
+		PlayerActionNoti player_action_noti = 64;
+
+		// Ball Action 관련
+		PlayerBallActionRequest player_ball_action_request = 65;
+		PlayerBallActionNoti player_ball_action_noti = 66;
+
+		// 메시지 알림
+		SysMessageRequest	sys_message_request = 67;
+		SysMessageNoti		sys_message_noti = 68;
+
+		ZoneChatRequest zone_chat_request = 69;
+		ZoneChatNoti zone_chat_noti= 70;
+
+		// 눈 오브젝트 관련
+		SnowObjectListNoti		snow_object_list_noti = 71;		
+		SnowObjectUseRequest	snow_object_use_request = 72;				
+		SnowObjectUseResponse	snow_object_use_response = 73;
+
+		// 얼름 오브젝트 관련
+		IceObjectListNoti		ice_object_list_noti = 241;		
+		IceObjectUseRequest		ice_object_use_request = 242;				
+		IceObjectUseResponse	ice_object_use_response = 243;
+
+		// 아이템 장착
+		EquipSeasonItemRequest	equip_season_item_request = 74;
+		EquipSeasonItemResponse	equip_season_item_response = 75;
+		EquipSeasonItemNoti		equip_season_item_noti = 76;
+
+		// 아이템 해제
+		UnEquipSeasonItemRequest		un_equip_season_item_request = 77;
+		UnEquipSeasonItemResponse	un_equip_season_item_response = 78;
+		UnEquipSeasonItemNoti		un_equip_season_item_noti = 79;
+				
+		// Item판매
+		SellItemRequest		sell_item_request  = 81;
+		SellItemResponse	sell_item_response = 82;
+
+		// Item구매
+		BuySeasonItemRequest		buy_season_item_request  = 83;
+		BuySeasonItemResponse		buy_season_item_response = 84;		
+
+		// 인벤토리 확장
+		ItemInvenExpandRequest item_inven_expand_request = 85;
+		ItemInvenExpandResponse item_inven_expand_response = 86;
+
+		// 아이템
+		InvenItemRequest inven_item_request = 87;
+		InvenItemResponse inven_item_response = 88;
+
+		// 시즌 아이템 삭제
+		DeletedSeasonItemRequest		deleted_season_item_request  = 89;
+		DeletedSeasonItemResponse		deleted_season_item_response = 90;
+
+		// 눈->골드로 전환
+		ExchangeSnowForGoldRequest		exchange_snow_for_gold_request = 91;
+		ExchangeSnowForGoldResponse		exchange_snow_for_gold_response = 92;		
+
+		// 유저 입장에 의한 게임 시작
+		ZoneGameReadyNoti zone_game_ready_noti  = 95; 
+		ZoneGameStartNoti zone_game_start_noti = 96; 
+		ZoneGameCompletedNoti zone_game_completed_noti = 97; 
+		ZoneGameStatusNoti zone_game_status_noti = 211; 
+		ZoneChagedGameModeLevelNoti zone_chaged_game_mode_level_noti = 232; 
+		
+		// 술레가 공격
+		DamageRequest damage_request = 141;
+		DamageNoti damage_noti = 142;
+
+		// 유저 Die
+		DeathNoti death_noti = 143;
+
+		// 부활
+		ResurrectionRequest resurrection_request = 144;
+		ResurrectionResponse resurrection_response = 145;
+		ResurrectionNoti resurrection_noti = 146;		
+
+		// 부활(스스로)
+		ResurrectionSelfRequest resurrection_self_request = 201;
+		ResurrectionSelfResponse resurrection_self_response = 202;
+		
+		// 부활(스스로)
+		ResurrectionSelfByTimeOverRequest resurrection_self_by_time_over_request = 235;
+		ResurrectionSelfByTimeOverResponse resurrection_self_by_time_over_response = 236;
+
+		// 노치 설치
+		NotchMountRequest notch_mount_request = 203;
+		NotchMountResponse notch_mount_response = 204;
+		NotchMountNoti notch_mount_noti = 205;
+
+		// 노치 해제
+		NotchUnlockRequest	notch_unlock_request = 206;
+		NotchUnlockResponse	notch_unlock_response = 207;
+		NotchUnlockNoti	notch_unlock_noti = 208;
+
+		// 노치 상태 조회
+		NotchStatusRequest notch_status_request = 209;
+		NotchStatusResponse notch_status_response = 210;
+
+		// 맵 오브젝트 관련 처리
+		CollectObjStatusRequest collect_obj_status_request = 212;
+		CollectObjStatusResponse collect_obj_status_response = 213;
+
+		CollectDestObjStatusRequest collect_dest_obj_status_request= 220;
+		CollectDestObjStatusResponse collect_dest_obj_status_response = 221;
+
+		CollectObjAcquiredRequest collect_obj_acquired_request = 214;
+		CollectObjAcquiredResponse collect_obj_acquired_response = 215;
+		CollectObjAcquiredNoti collect_obj_acquired_noti = 216;
+
+		CollectObjArrivedRequest collect_obj_arrived_request = 217;
+		CollectObjArrivedResponse collect_obj_arrived_response = 218;
+		CollectObjArrivedNoti collect_obj_arrived_noti = 219;
+
+		InGameInventoryRequest in_game_inventory_request = 222;
+		InGameInventoryResponse in_game_inventory_response = 223;
+
+		InGameEquipItemRequest in_game_equip_item_request = 224;
+		InGameEquipItemResponse in_game_equip_item_response = 225;
+		InGameEquipItemNoti in_game_equip_item_noti = 226;
+
+		// 봇캐릭터 정보
+		ZoneBotCharacterListNoti zone_bot_character_list_noti = 227;
+		ZoneBotCharacterMoveNoti zone_bot_character_move_noti = 228;
+		ZoneBotCharacterDirectMoveNoti zone_bot_character_direct_move_noti = 229;
+		ZoneBotCharacterEnterNoti zone_bot_character_enter_noti = 230;
+		ZoneBotCharacterLeaveNoti zone_bot_character_leave_noti = 231;
+
+		// 재화 박스 오픈
+		OpenCurrencyBoxRequest open_currency_box_request = 245;
+		OpenCurrencyBoxResponse open_currency_box_response = 246;
+		OpenCurrencyBoxNoti open_currency_box_noti = 247;
+
+		// 아이템 박스 오픈
+		OpenItemBoxRequest open_item_box_request = 248;
+		OpenItemBoxResponse open_item_box_response = 249;
+		OpenItemBoxNoti open_item_box_noti = 250;
+
+		// 아이템 박스 정보
+		ItemBoxInfosRequest item_box_infos_request = 255;
+		ItemBoxInfosResponse item_box_infos_response = 256;
+
+		// 오션업 
+		OceanUpMaxFloorUpdateRequest ocean_up_max_floor_update_request = 257;
+		OceanUpMaxFloorUpdateResponse ocean_up_max_floor_update_response = 258;
+
+		// 감정
+		PlayerEmotionRequest player_emotion_request = 259;
+		PlayerEmotionNoti player_emotion_noti = 260;
+		
+		/**** end Zone Server ****/
+
+		/**** Room Server ****/
+		// Room 서버 입장
+		RoomServerEnterRequest	room_server_enter_request = 99;
+		RoomServerEnterResponse	room_server_enter_response = 100;
+		
+		// Room 유저		
+		RoomCreateRequest	room_create_request = 101;
+		RoomCreateResponse	room_create_response = 102;
+		// Room List요청
+		RoomListRequest		room_list_request  = 103;
+		RoomListResponse	room_list_response = 104;
+		// Room 입장
+		RoomEnterRequest	room_enter_request  = 105;
+		RoomEnterResponse	room_enter_response = 106;
+		RoomEnterNoti		room_enter_noti = 107;
+		// Room 나오기 
+		RoomLeaveRequest	room_leave_request = 108;
+		RoomLeaveResponse	room_leave_response = 109;
+		RoomLeaveNoti		room_leave_noti = 110;
+		// Room 에 유저 정보 요청
+		RoomCharListRequest		room_char_list_request  = 111;
+		RoomCharListResponse	room_char_list_response = 112;
+		
+		// 룸 방장 변경
+		RoomMasterChangeRequest room_master_change_request = 116;
+		RoomMasterChangeResponse room_master_change_response = 117;
+		RoomMasterChangeNoti room_master_change_noti = 118;
+		// 룸 팀변경
+		RoomTeamChangeRequest room_team_change_request = 119;
+		RoomTeamChangeResponse room_team_change_response = 120;
+		RoomTeamChangeNoti room_team_change_noti = 121;		
+		// 룸 게임 레디
+		RoomGameReadyRequest room_game_ready_request = 122;
+		RoomGameReadyResponse room_game_ready_response = 123;
+		RoomGameReadyNoti room_game_ready_noti = 124;
+		// 룸 게임 시작
+		RoomGameStartRequest room_game_start_request = 125;
+		RoomGameStartResponse room_game_start_response = 126;
+		RoomGameStartNoti room_game_start_noti = 127;
+		// 룸 게임 종료
+		RoomGameEndRequest room_game_end_request = 128;
+		RoomGameEndResponse room_game_end_response = 129;
+		RoomGameEndNoti room_game_end_noti = 130;
+		// 룸 옵션 변경 
+		RoomOptionChangedRequest room_option_changed_request = 131;
+		RoomOptionChangedResponse room_option_changed_response = 132;
+		RoomOptionChangedNoti room_option_changed_noti = 133;
+
+		// 룸 채팅
+		RoomChatRequest room_chat_request	= 134;
+		RoomChatNoti room_chat_noti			= 135;
+
+		// 룸 게임 하일라이트 정산
+		RoomGameHighlightRequest room_game_highlight_request		= 136;
+		RoomGameHighlightResponse room_game_highlight_response	= 137;
+		RoomGameHighlightNoti room_game_highlight_noti			= 138;
+
+		// 룸 게임 광고에 따른 보상
+		RoomBonusRewardRequest room_bonus_reward_request = 139;
+		RoomBonusRewardResponse room_bonus_reward_response = 140;
+		RoomChagedGameModeLevelNoti room_chaged_game_mode_level_noti = 233; 
+
+		/**** end Room Server ****/
+
+		/**** Zone&Room Server ****/
+		ChaneItemRequest chane_item_request = 251;
+		ChangeItemNoti change_item_noti = 252;
+		/**** end Zone&Room Server ****/
+
+
+		/**** Commnity Server ****/
+		CommnunityServerEnterRequest commnunity_server_enter_request = 150;
+		CommnunityServerEnterResponse commnunity_server_enter_response = 151;
+
+		// 룸서버 초대 
+		RoomUserInvitedRequest room_user_invited_request = 152;
+		RoomUserInvitedResponse room_user_invited_response = 153;
+		RoomUserInvitedNoti room_user_invited_noti = 154;
+
+		// 존서버 초대 
+		ZoneUserInvitedRequest zone_user_invited_request = 155;
+		ZoneUserInvitedResponse zone_user_invited_response = 156;
+		ZoneUserInvitedNoti zone_user_invited_noti = 157;
+
+		// 채팅 
+		ChatRoomCreatedNoti chat_room_created_noti = 161; // 방생성 알림
+		ChatRoomAddedChatNoti chat_room_added_chat_noti = 162; //채팅알림
+		ChatRoomLeavedNoti chat_room_leaved_noti = 163; // 유저 떠남
+		ChatRoomAddedReadNoti chat_room_added_read_noti = 164; // 글읽음
+
+		// 알림 변경
+		AlertChangedNoti alert_changed_noti = 165; 
+		FeatureBlockChangedNoti feature_block_changed_noti = 167; 
+		EmergencyNoticeChangedNoti emergency_notice_changed_noti = 168; 
+
+		// 유저들에게 다이빙 함을 알림
+		BroadcastDivingNoti broadcast_diving_noti = 169;
+		/**** end Commnity Server ****/
+
+		/**** Chat Server ****/		
+		// 채팅룸 입장
+		ChatRoomEnteredRequest chat_room_entered_request = 171;
+		ChatRoomEnteredResponse chat_room_entered_response = 172;
+		ChatRoomEnteredNoti chat_room_entered_noti = 173;
+
+		// 채팅 추가 
+		ChatRoomAddedChatRequest chat_room_added_chat_request = 174;
+		ChatRoomAddedChatResponse chat_room_added_chat_response = 175;
+			
+		// 채팅 룸 생성
+		ChatRoomCreatedRequest chat_room_created_request = 180;
+		ChatRoomCreatedResponse chat_room_created_response = 181;
+		
+		// 단일 채팅 룸 정보 가져오기
+		ChatRoomRefreshRequest chat_room_refresh_request = 193;
+		ChatRoomRefreshResponse chat_room_refresh_response = 194;
+
+		// 채팅 룸 나가기
+		ChatRoomLeavedRequest chat_room_leaved_request = 195;
+		ChatRoomLeavedResponse chat_room_leaved_response = 196;		
+		/**** end Chat Server ****/
+
+		/**** Gmtool ****/
+		GmtoolUserKickNoti gmtool_user_kick_noti = 301;
+		GmtoolChatNoti gmtool_chat_noti = 302;
+		GmtoolUserNoticeNoti gmtool_user_notice_noti = 303;
+		/**** end Gmtool  ****/
+	}
+}
+
+// 연결 성공
+message ConnectedResponse {  
+  int32 index = 1;  
+}
+
+// 연결 유지
+message KeepAliveNoti {    
+}
+
+// 클라이언트가 연결 유지
+message KeepAliveRequest {    
+}
+
+///////////// 서버 로그인
+
+message LobbyInfo {
+  int32 id = 1;
+  int32 world_idx = 2;
+  string name = 3;
+  string ip = 4;  
+  int32 port = 5;
+  string https_host = 6;  
+}
+
+
+// 캐릭터 생성
+message CreateAccountRequest {  
+	int32   login_type = 1; // 1: 구글, 2:페이스북, 3: apple, 4: 자체
+	string	account_id = 2;
+	string	pass = 3;
+	string	token = 4;
+
+	string	user_firebase_uid = 5; // user의 firebase UID
+	int32   user_device_type = 6; // UserDeviceType(1: 안드로이드, 2: IOS, 3: PC)
+	int32   is_limited = 7; // FaceBook Limited Login
+
+}
+
+message CreateAccountResponse {  
+	int32 error_code = 1;
+	string session_guid = 2;		
+	string user_handle = 3;		
+}
+
+// UserFirebaseUid 업데이트
+message UpdatedUserFirebaseUidRequest {  
+	string session_guid = 1;
+
+	string user_firebase_uid = 2;
+	
+}
+message UpdatedUserFirebaseUidResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;		
+}
+
+// 로그인 
+message LoginRequest {  
+	int32   login_type = 1; // 1: 구글, 2:페이스북, 3: apple, 4: 자체
+	string	account_id = 2;
+	string	pass = 3;
+	string	token = 4;
+
+	string	remote_address = 5;
+	string	device_uuid = 6; // 기기 UUID
+	int32   user_device_type = 7; // UserDeviceType(1: 안드로이드, 2: IOS, 3: PC)
+	int32   is_limited = 8; // FaceBook Limited Login
+
+	int32   login_app_store_type = 9; // 로그인한 상점 타입
+
+}
+
+message LoginResponse {  
+	int32 error_code = 1;	
+	int32   world_id = 2;
+	int32   has_character = 3;
+	int32   updated_character = 4; // 캐릭터 코스튬을 완료하였는지 여부
+	string   nickname = 5; 
+	int32	gender = 6;
+	repeated LobbyInfo lobby_infos = 7;
+	string session_guid = 8;
+	string user_handle = 9;		
+	string	user_seq	= 10;	
+	string	char_seq	= 11;	
+}
+
+/**** Lobby Server ****/
+message ZoneInfo {
+  int32 server_id = 1;
+  int32 zone_id = 2;
+  int32 map_index = 3;
+  string name = 4;
+  string ip = 5;  
+  int32 port = 6;
+  int32 user_count = 7;
+}
+
+message ZoneServerInfo {
+  int32 server_id = 1;
+  int32 zone_id = 2;
+  int32 map_index = 3;
+  string name = 4;
+  string ip = 5;  
+  int32 port = 6;
+  int32 user_count = 7;
+  int32 available_game_mode = 8; // 플레이 가능한 게임모드
+}
+
+message CommnityServerInfo {
+  int32 server_id = 1;  
+  string name = 4;
+  string ip = 5;  
+  int32 port = 6;
+  int32 user_count = 7;
+  string https_host = 8;
+}
+
+message RoomServerInfo {
+  int32 server_id = 1;  
+  int32 game_mode = 2;
+  string name = 3;
+  string ip = 4;  
+  int32 port = 5;
+  int32 user_count = 7;
+
+  string https_host = 8;  
+}
+
+// 캐릭터 파츠 정보
+message BodyPartsInfo{	
+	
+	string ingame_parts = 4; // 모드에서 사용하는 파츠
+}
+
+// 기본 캐릭터 정보
+message BaseCharacterInfo{
+	uint64	user_seq = 1;
+	uint64	char_seq = 2;
+
+	string nickname = 3;
+	string alias = 4;
+	int32 class = 5;	
+	int32 gender = 6;
+	
+	BodyPartsInfo body_parts_info= 7;	
+	repeated InventoryItem equiped_items = 8;
+
+	int32 game_mode_level = 9;
+}
+
+// 게임 모드 경험치
+message ModeExpInfo {
+	int32 game_mode = 1;
+	int32 prev_level = 2;
+	int32 current_level = 3;
+	int64 current_exp = 4;
+}
+
+// 게임 패스 경험치
+message SeasonExpInfo {
+	int32 season_id = 1;
+	int32 prev_level = 2;
+	int32 current_level = 3;
+	int64 current_exp = 4;
+}
+
+// 기본 캐릭터 생성
+message CreateDefaultRequest {  
+	string session_guid = 1;
+	string nickname = 2;  
+	int32 gender = 3;	
+
+	int32 birth_year = 4;	
+	int32 birth_month = 5;	
+	int32 birth_day = 6;
+}
+message CreateDefaultResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	string char_seq = 3;	
+	string user_seq = 4;
+}
+
+
+// 기본 캐릭터 생성
+message ZoneServerListRequest {  
+	string session_guid = 1;	
+}
+message ZoneServerListResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	repeated ZoneServerInfo zone_server_infos = 3;  
+	repeated CommnityServerInfo community_server_infos = 4;
+	repeated RoomServerInfo room_server_infos = 5;
+}
+
+// 아이템 기본 정보
+message BaseItem { 	
+	uint64 item_seq = 1;
+	int32 item_sn = 2;	
+	int32 count = 3;
+}
+
+
+// 착장 정보
+message EquipItemInfoRequest {
+	string	session_guid = 1;
+	int32	game_mode_type = 2; // GameModeType(0:로비 상태, 1: 삽투사모드)
+}
+
+message EquipItemInfoResponse 
+{  
+	int32 error_code = 1;
+	string	session_guid = 2;
+
+	string nickname = 3;
+	string alias = 4;
+	int32 class = 5;	
+	int32 gender = 6;
+	
+	uint64 money = 7;	
+	uint64 diamond = 8;
+	uint64 clover = 9;
+	uint64 bell = 14;
+	uint64 color_tube = 15;
+
+	uint64 premium_money = 16;
+	uint64 premium_diamond = 17;
+	
+	uint64  exp = 10;
+	int32  level = 11;
+
+	BodyPartsInfo body_parts_info = 12;
+	repeated InventoryItem equiped_items = 13;
+}
+
+// 골드/다이아몬드 정보 요청
+message CurrencyRequest{	
+	string session_guid = 1;
+}
+
+message CurrencyResponse{
+	int32 error_code = 1;
+
+	string session_guid = 2;
+
+	uint64 money = 3;	
+	uint64 diamond = 4;
+	uint64 clover = 5;
+	uint64 bell = 6;
+	uint64 color_tube = 7;
+
+	uint64 premium_money = 8;
+	uint64 premium_diamond = 9;
+	
+}
+// 눈 스코어 추가
+message AddedRankScoreRequest {
+	string session_guid = 1;
+	int32	game_mode_type = 2; // GameModeType(1: 삽투사모드)
+	int64	point = 3;		// 눈 사용 포인트
+}
+
+message AddedRankScoreResponse {
+	string session_guid = 1;
+	int32 error_code = 2;	
+}
+
+// 눈 스코어 랭킹
+message RankRequest {
+	string session_guid = 1;	
+	int32	game_mode_type = 2; // GameModeType(1: 삽투사모드)
+}
+
+message RankResponse {
+	string session_guid = 1;
+	int32 error_code = 2;
+	int32	game_mode_type = 3; // GameModeType(1: 삽투사모드)
+	int64 my_rank = 4;	
+	repeated RankInfo rank_infos = 5;
+	int64 my_point = 6;
+}
+//////////////// 일반 아이템 인벤
+message ItemInvenRequest {  
+	string session_guid = 1;		
+}
+message ItemInvenResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	repeated InventoryItem items = 3;
+	string background_image_url = 4;
+}
+
+//////////////// 눈모드 아이템 인벤
+// 눈모드 아이템 구매
+message DiggingWarriorItem { 	
+	string item_seq = 1;
+	int32 item_sn = 2;	
+	int32 equip = 3;	// 0:미장착, 1:장착
+	int64 stored_amount = 4; // '보관중인 수량(예. 삽투사모드에 눈의 양)'
+}
+
+message DiggingWarriorItemInvenRequest {  
+	string session_guid = 1;		
+}
+message DiggingWarriorItemInvenResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	repeated DiggingWarriorItem items = 3;
+}
+
+////////////////// 알림 관련 처리
+message AlertMessage{
+	string	alert_seq = 1;		// 알림seq	
+	int32	alert_type = 2;
+	string	json_data = 3;
+	int32	checked	= 4;	
+	//google.protobuf.Timestamp created_date = 6;
+	string created_date = 5;
+}
+
+// 알림 메시지 추가
+message AddedAlertRequest {  
+	string	session_guid = 1;
+	string	article_id = 2;	// 게시글seq
+	int32	alert_type = 3;
+	string	json_data = 4;	
+}
+
+message AddedAlertResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+}
+
+// 알림 가지고 있는지 체크
+message UnCheckedAlertCountRequest {  
+	string session_guid = 1;		
+}
+message UnCheckedAlertCountResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	int32 unchecked_alert_count = 3; // 확인하지 않은 알림
+}
+
+// 전체 알림을 가져옴
+message AlertMessageRequest {  
+	string session_guid = 1;		
+}
+message AlertMessageResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	repeated AlertMessage messages = 3;
+}
+
+// 선물 메일 수 확인
+message UnCheckedPresentMailCountRequest {  
+	string session_guid = 1;		
+}
+message UnCheckedPresentMailCountResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	int32 unchecked_mail_count = 3; // 확인하지 않은 알림
+}
+
+////////////////// 선물
+message Mail{
+	string	mail_seq	= 1;		// 알림seq	
+	int32	rewarded	= 2;		// 보상 받은 메일
+	int32	mail_type	= 3;		// 1: 상점에서 선물하기, 
+	string json_data	= 4;
+
+	string created_date = 5;
+}
+
+// 받은 메일 요청
+message MailRequest {  
+	string session_guid = 1;		
+}
+message MailResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	
+	repeated Mail mails = 3;
+}
+
+// 메일 받기
+message ReceiveMailRequest {  
+	string session_guid = 1;		
+
+	string mail_seq = 2;
+}
+message ReceiveMailResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+	string json_data = 3;
+
+	repeated InventoryItem received_items = 4;
+}
+
+// 메일받은 갯수 체크
+message RecipientMailCountRequest {  
+	string session_guid = 1;		
+
+	string target_user_seq = 2;
+}
+message RecipientMailCountResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+	
+	int32 count = 3;
+}
+
+////////////////// 팔로우
+// 팔로워 : 나를 따라다니는 사람
+// 팔로잉, 팔로우 : 내가 따라 다니는 사람
+message FollowUser{
+	string	user_seq	= 1;	
+	string	nickname	= 2;	
+	string	char_seq	= 3;	
+	string	image_url	= 4;	
+	string	created_date = 5;
+	string user_handle = 6;
+}
+
+// 팔로우 유저들 (내가 따라 다니는 사람)
+message FollowUserListRequest {  
+	string session_guid = 1;		
+}
+message FollowUserListResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+
+	int32 today_count = 3; // 오늘 팔로워한 수
+	int32 total_count = 4; // 총 팔로워한 수
+	
+	repeated FollowUser follow_users = 5;
+}
+
+// 팔로우 유저(내가 따라 다니는 사람) 추천
+message FollowRecommendedUsersRequest {  
+	string session_guid = 1;		
+}
+message FollowRecommendedUsersResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	
+	repeated FollowUser follow_users = 5;
+}
+
+// 팔로워(나를 따라다니는 사람) 유저들
+message FollowerUserListRequest {  
+	string session_guid = 1;		
+
+	int32 offset = 2;	// 시작 지점
+	int32 limit = 3;	// 한번에 가져오려는 갯수
+	string standard_date = 4;	// 조회 기준 시간(비어있으면 이 조건 없이 조회)
+}
+message FollowerUserListResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	
+	int32 total_count = 3; // 총 유저수 
+	
+	repeated FollowUser follow_users = 4;
+}
+
+
+// 팔로우(내가 따라 다니는 사람) 추가 
+message FollowAddedUserRequest {  
+	string session_guid = 1;
+	string added_user_seq = 2;
+}
+message FollowAddedUserResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+
+	string added_user_seq = 3;
+	string added_char_seq = 4;
+	string added_nickname = 5;
+	string added_image_url = 6;
+	string added_user_handle = 7;
+}
+
+// 팔로우(내가 따라 다니는 사람) 취소 
+message FollowDeletedUserRequest {  
+	string session_guid = 1;
+	string canceled_user_seq = 2;
+}
+message FollowDeletedUserResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+}
+
+// 팔로우(내가 따라 다니는 사람) 유저들
+message FollowCountRequest {  
+	string session_guid = 1;		
+}
+message FollowCountResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;		
+
+	int32 today_count = 3;
+	int32 total_count = 4;	
+}
+
+////////// 게임 모드 
+message GameModeInfo{
+	int32 game_mode = 1; // 게임 모드
+	string liked_count = 2; // 좋아요 수
+	string play_count = 3; // 플레이 수
+}
+
+// 게임 모드 (좋아요)
+message GameModeLikedRequest {  
+	string session_guid = 1;		
+	
+	int32 game_mode = 2; // 게임 모드
+	int32 liked = 3; // 1 : 좋아요, 0 : 좋아요 취소
+}
+message GameModeLikedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+}
+
+// 게임 모드 순위
+message GameModeLikedCountRequest {  
+	string session_guid = 1;			
+	
+}
+message GameModeLikedCountResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+
+	repeated GameModeInfo game_modes = 3;
+}
+
+// 전체 게임 모드 좋아요
+message GameModeAllLikedCountRequest {  
+	string session_guid = 1;			
+	
+}
+message GameModeAllLikedCountResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+
+	repeated GameModeInfo game_modes = 3;
+}
+
+// 유저 게임모드별 좋아요
+message GameModeUserLikedRequest {  
+	string session_guid = 1;			
+	
+}
+message GameModeUserLikedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+
+	repeated int32 liked_game_mode = 3; // 게임 모드
+}
+
+////////////////게시물 관련
+
+// 게시글
+message ArticleInfo{
+	string id = 1;
+	string user_seq = 2;
+	string json_data = 3;
+	string liked = 4;	
+	repeated string hash_tags = 6;	
+	string created_date = 7;
+	int32 has_my_like = 8;	//	내가 좋아요 했는지 여부
+	int32 has_reported = 9;	// 신고하기 여부
+
+	repeated string user_seq_tags = 10;	// 유저 seq tags
+
+	int64 comment_count = 11;	// 댓글 갯수
+}
+
+// 댓글
+message ArticleCommentInfo{	
+	string id = 1;
+	string parent_comment_id = 2;
+	string user_seq = 3;
+	string json_data = 4;
+	string liked = 5;
+	repeated string hash_tags = 6;	
+	int32 has_reported = 7;	// 신고하기 여부
+	string created_date = 8;
+}
+
+// 유저의 파츠 정보
+message CharacterPartsInfo{
+	string char_seq = 1;
+
+	BodyPartsInfo body_parts_info= 2;	
+	repeated InventoryItem equiped_items = 3;
+}
+
+// 게시판 추가 요청
+message ArticleAddedRequest {
+	string session_guid = 1;
+
+	string json_data = 2;
+	string hash_tags = 3;
+	string mentions = 4; // 게시글 멘션 
+
+	string user_seq_tags = 5;
+}
+
+message ArticleAddedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;		
+	
+	ArticleInfo article = 3;
+}
+
+// 게시물 삭제 요청
+message ArticleDeletedRequest {
+	string session_guid = 1;
+
+	string article_id = 2;	// 게시물
+}
+
+message ArticleDeletedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+}
+
+// 게시판 - 댓글 추가
+message ArticleAddedCommentRequest {
+	string session_guid = 1;
+
+	string article_id = 2;	// 댓글을 달 게시물
+	string json_data = 3;
+	string hash_tags = 4;
+	string mentions = 5; // 게시글 멘션 
+}
+
+message ArticleAddedCommentResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+
+	ArticleCommentInfo comment = 3;
+}
+
+// 게시물 댓글 삭제 요청
+message ArticleDeletedCommentRequest {
+	string session_guid = 1;
+
+	string comment_id = 2;	// 댓글 Uid
+}
+
+message ArticleDeletedCommentResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+}
+
+
+// 댓글의 댓글 추가
+message ArticleAddedCommentReplyRequest {
+	string session_guid = 1;
+
+	string article_id = 2;	// 
+	string comment_id = 3;	// 댓글의 uid
+	string json_data = 4;
+	string hash_tags = 5;
+	string mentions = 6; // 게시글 멘션 
+}
+
+message ArticleAddedCommentReplyResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+
+	ArticleCommentInfo comment = 3;
+}
+
+// 댓글의 댓글 추가
+message ArticleDeletedCommentReplyRequest {
+	string session_guid = 1;
+
+	string comment_id = 2;	// 댓글 Uid
+}
+
+message ArticleDeletedCommentReplyResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+}
+
+// 게시판 글들 요청 - 전체 유저 대상
+message ArticleAllRequest {
+	string session_guid = 1;
+
+	int32 offset = 2;	// 게시글 - 시작 지점
+	int32 limit = 3;	// 게시글 - 한번에 가져오려는 갯수
+}
+
+message ArticleAllResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	repeated ArticleInfo articles = 3;	
+}
+
+// 특정 유저 게시판 글들 요청 
+message ArticleByUserSeqRequest {
+	string session_guid = 1;
+
+	string target_user_seq = 2;
+
+	int32 offset = 3;	// 게시글 - 시작 지점
+	int32 limit = 4;	// 게시글 - 한번에 가져오려는 갯수
+}
+
+message ArticleByUserSeqResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	repeated ArticleInfo articles = 3;	
+}
+
+// 특정 유저 게시판 글들 요청 
+message ArticleByUserSeqTagRequest {
+	string session_guid = 1;
+
+	string target_user_seq = 2;
+
+	int32 offset = 3;	// 게시글 - 시작 지점
+	int32 limit = 4;	// 게시글 - 한번에 가져오려는 갯수
+}
+
+message ArticleByUserSeqTagResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	repeated ArticleInfo articles = 3;	
+}
+
+// 게시판 글 요청 - 인기글
+// 인기 글 요청
+message ArticleLikedRequest{
+	string session_guid = 1;
+		
+	int32 limit = 2;	// 게시글 - 한번에 가져오려는 갯수
+}
+
+message ArticleLikedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	repeated ArticleInfo articles = 3;	
+}
+
+// 게시판 글 요청 - 특정 글 하나
+message ArticleOneRequest{
+	string session_guid = 1;
+		
+	string article_id = 2;	// 게시글 ID
+	string json_data = 3; // 그밖에 json_data
+}
+
+message ArticleOneResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	ArticleInfo article = 3;	
+	string json_data = 4; // 그밖에 json_data
+}
+
+
+// 게시판 글들 요청 - 팔로우(내가 따라 다니는 사람) 
+message ArticleFollowRequest {
+	string session_guid = 1;
+
+	int32 offset = 2;	// 게시글 - 시작 지점
+	int32 limit = 3;	// 게시글 - 한번에 가져오려는 갯수
+}
+
+message ArticleFollowResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	repeated ArticleInfo articles = 3;	
+}
+
+// 게시판 글에 좋아요 추가
+message ArticleAddedLikeRequest {
+	string session_guid = 1;
+
+	string article_id = 2;	// 게시글 ID
+	int32 liked = 3;		// 좋아요(0:좋아요 취소, 1:좋아요)
+}
+
+message ArticleAddedLikeResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	string article_id = 3;	// 게시글 ID
+	int32 liked = 4;		// 좋아요(0:좋아요 취소, 1:좋아요)
+	
+}
+
+// 게시글 수정하기
+message ArticleEditedRequest {
+	string session_guid = 1;
+
+	string article_id = 2;	// 게시글 ID
+	string json_data = 3;
+	string hash_tags = 4;
+	string mentions = 5; // 게시글 멘션 
+}
+
+message ArticleEditedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	
+}
+
+// 게시글 신고하기
+message ArticleReportedRequest {
+	string session_guid = 1;
+
+	string article_id = 2;	// 게시글 ID	
+}
+
+message ArticleReportedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	
+}
+
+// 게시글 댓글 - 신고하기
+message ArticleReportedCommentRequest {
+	string session_guid = 1;
+
+	string comment_id = 2;	// 댓글 Uid
+}
+
+message ArticleReportedCommentResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+	
+}
+
+// 유저 정보 요청
+message CharacterPartsFetchedRequest {
+	string session_guid = 1;
+
+	int32 game_mode = 2; // 인게임 파츠 정보 요청을 위한 값
+	string char_seqs = 3;	//필요한 유저seq (1,2,3,4)
+}
+
+message CharacterPartsFetchedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	repeated CharacterPartsInfo char_infos = 3;	
+}
+
+/////////////// 상점 관련
+// 인벤토리 아이템 정보
+message InventoryItem { 	
+	string item_seq = 1;
+	int32 item_type = 2; // 2:캐릭터, 3:의상, 4: 액세사리
+	int32 item_sn = 3;	
+	int32 equip = 4;	// 0:미장착, 1:장착
+	int32 amount = 5; // 아이템 수량
+	int32 slot_id = 6; // SLotId
+	string json_data = 7; // 아이템 정보
+	int32 color_id = 8; // 컬러ID
+
+	string expired_date = 9; // 기간 만료 정보	
+}
+
+// 상점 아이템 구매
+message ShopPurchaseItemRequest {
+	string session_guid = 1;
+	
+	int32 item_type = 2; // 2:캐릭터, 3:의상, 4: 액세사리
+	int32 item_id = 3;	
+}
+
+message ShopPurchaseItemResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+	
+	InventoryItem inventory_item = 5;
+
+	int64 total_money = 6; // Free
+	int64 total_premium_money = 7; // 
+	
+	int64 total_diamond = 8; // Free
+	int64 total_premium_diamond = 9; // 
+}
+
+// 상점 아이템 선물하기
+message ShopSendGiftRequest {
+	string session_guid = 1;
+
+	string target_user_seq = 2;
+	int32 item_type = 3; // 2:캐릭터, 3:의상, 4: 액세사리
+	int32 item_id = 4;
+
+	string text = 5; // 본문
+}
+
+message ShopSendGiftResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	int64 total_money = 6; // Free
+	int64 total_premium_money = 7; // 
+	
+	int64 total_diamond = 8; // Free
+	int64 total_premium_diamond = 9; // 
+}
+
+message ShopSendGiftNoti {  
+	string from_user_seq = 1;
+	string from_nick_name = 2;
+
+	string item_id = 3;	
+	InventoryItem inventory_item = 4;
+}
+
+// 아이템 착용
+message EquipItemRequest {
+	string session_guid = 1;
+	
+	int32 item_type = 2; // 2:캐릭터, 3:의상, 4: 액세사리
+	string item_seq = 3; // 아이템 고유키
+
+	int32	updated_background_image = 4; // (0/1: background_image_url 업데이트 여부)
+	string	background_image_url = 5;	 // 배경 아이템 이미지
+}
+
+message EquipItemResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;		
+
+	string equip_item_seq = 3;		// 장착 seq
+	string unequip_item_seq = 4;	// 장착 해제 seq
+	
+}
+
+// 아이템 해제
+message UnEquipItemRequest {
+	string session_guid = 1;
+	
+	int32 item_type = 2; // 2:캐릭터, 3:의상, 4: 액세사리
+	string item_seq = 3; // 아이템 고유키
+	
+}
+message UnEquipItemResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+}
+
+// 아이템 염색
+message ShopDyeColorItemRequest {
+	string session_guid = 1;
+	
+	int32 item_type = 2; // 2:캐릭터, 3:의상, 4: 액세사리
+	string item_seq = 3; // 아이템 고유키
+	int32 color_item_id = 4;	
+}
+message ShopDyeColorItemResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+
+	InventoryItem inventory_item = 5;
+
+	int64 total_money = 6; // Free
+	int64 total_premium_money = 7; // 
+	
+	int64 total_diamond = 8; // Free
+	int64 total_premium_diamond = 9; // 
+}
+
+// 아이템 좋아요
+message ShopLikedItemRequest {
+	string session_guid = 1;
+	
+	int32 shop_item_id = 2;
+	int32 liked = 3;
+}
+message ShopLikedItemResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	int32 shop_item_id = 3;
+	int64 total_liked_count = 4;
+}
+
+// 내가 좋아요한 아이템들 요청
+message ShopLikedItemInfo{
+	int32 shop_item_id = 1;
+	int64 total_liked_count = 2;
+}
+
+message ShopMyLikedItemsRequest {
+	string session_guid = 1;
+
+}
+message ShopMyLikedItemsResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	repeated ShopLikedItemInfo items = 3;	
+}
+
+// 다른 유저 - 좋아요한 아이템들 요청
+message ShopLikedItemFromOtherRequest {
+	string session_guid = 1;	
+
+	string target_user_seq = 2;
+}
+
+message ShopLikedItemFromOtherResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	repeated ShopLikedItemInfo items = 3;	
+}
+
+// 아이템 좋아요 수
+message ShopItemLikedCountRequest {
+	string session_guid = 1;
+
+	int32 item_sn = 2;
+}
+message ShopItemLikedCountResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	int32 item_sn = 3;
+	int64 liked_count = 4;
+}
+
+/**** end Lobby Server ****/
+
+/**** Zone Server ****/
+
+// 인벤 정보 요청
+message InvenItemRequest {  
+  
+}
+
+message InvenItemResponse{
+	int32 error_code = 1;
+}
+
+// 눈->골드로 변환
+message ExchangeSnowForGoldRequest {  
+	uint64		storaged_item_seq = 1;		// 저장된 아이템seq (가방, 탈것)
+	int64		decrease_snow_point = 2;	// 소모하는 눈 포인트	
+}
+
+message ExchangeSnowForGoldResponse{
+	int32		error_code = 1;
+
+	uint64		storaged_item_seq = 2;		// 저장된 아이템seq (가방, 탈것)
+	int64		snow_point = 3;				// 저장소 눈 포인트
+
+	uint64		money = 4;
+	ModeExpInfo mode_exp_info = 5; // 게임 정보 경험치 정보	
+}
+
+
+// 닉네임 유효성 체크
+message VerifyNicknameRequest {  
+	string nickname = 1;
+}
+
+message VerifyNicknameResponse {  
+	int32 error_code = 1;	
+}
+
+// 캐릭터 삭제
+message DeleteCharacterRequest {  
+	
+}
+
+message DeleteCharacterResponse {
+	int32 error_code = 1;	
+}		
+
+// 위치
+message Position {
+  int32 x = 1;
+  int32 y = 2;
+  int32 z = 3;
+}
+
+// 존 입장
+message ZoneEnterRequest {
+  string	session_guid = 1;
+  int32		map_index = 2;
+
+  int32		game_mode = 3;
+}
+
+message ZoneEnterResponse {  
+	int32 error_code = 1;    
+
+	string nickname = 2;
+	string alias = 3;
+	int32 class = 4;	
+	int32 gender = 5;
+
+	BodyPartsInfo body_parts_info= 6;
+
+	int32		move_type = 7;	// MoveType
+	Position	position = 8;			
+	int32 		dir = 9;
+	
+	int32	vehicle_item_sn = 10; // 탈것 정보
+
+	int32 	zone_index = 11;
+	int32	map_index = 12;
+
+	repeated InventoryItem equiped_items = 13;
+}
+
+// 초대에 의한 존 입장
+message ZoneEnterByInvitedRequest {
+  string	session_guid = 1;
+  int32		map_index = 2;
+  int32 	zone_index = 4;
+  int32 	game_mode = 5;
+}
+
+message ZoneEnterByInvitedResponse {  
+	int32 error_code = 1;    
+
+	string nickname = 2;
+	string alias = 3;
+	int32 class = 4;	
+	int32 gender = 5;
+
+	BodyPartsInfo body_parts_info= 6;
+
+	int32		move_type = 7;	// MoveType
+	Position	position = 8;			
+	int32 		dir = 9;
+	
+	int32	vehicle_item_sn = 10; // 탈것 정보
+
+	repeated InventoryItem equiped_items = 11;
+}
+
+message ZoneCharacter {  
+	BaseCharacterInfo base_character_info = 1;
+
+	int32		move_type = 2;	// MoveType
+	Position	position = 3;			
+	int32 		dir = 4;					
+
+	int32 action_object_id = 5;
+	int32 action_id = 6;
+	int32 is_in_action = 7;
+	
+	int32 vehicle_item_sn = 8;
+}
+
+message ZoneEnterNoti {  
+	ZoneCharacter zone_character = 1;
+}
+
+message ZoneCharacterList {  
+	repeated ZoneCharacter zone_characters = 1;
+}
+
+message ZoneLeaveNoti {  
+	uint64	char_seq = 1;	
+}
+
+/*************** 
+// 봇 관련
+***************/ 
+/////////// 봇 정보
+message ZoneBotCharacter {  
+	BaseCharacterInfo base_character_info = 1;
+
+	int32		move_type = 2;	// MoveType
+	Position	position = 3;			
+	int32 		dir = 4;					
+
+	int32 action_object_id = 5;
+	int32 action_id = 6;
+	int32 is_in_action = 7;
+	
+	int32 vehicle_item_sn = 8;	
+}
+
+// 봇 리스트 알림
+message ZoneBotCharacterListNoti {  
+	repeated ZoneBotCharacter bot_characters = 1;
+}
+
+// 봇 이동 알림
+message ZoneBotCharacterMoveNoti {  
+	uint64		bot_char_seq = 1;
+	Position	position = 2;			
+
+}
+
+message ZoneBotCharacterDirectMoveNoti{  
+	uint64		bot_char_seq = 1;
+	Position	position = 2;			
+
+}
+
+// 봇입장
+message ZoneBotCharacterEnterNoti {  
+	uint64		bot_char_seq = 1;
+	ZoneBotCharacter bot_character = 2;
+}
+
+// 봇나감
+message ZoneBotCharacterLeaveNoti {  
+	uint64		bot_char_seq = 1;	
+}
+
+// 재화 박스 오픈
+message OpenCurrencyBoxRequest {  
+	int32	box_id = 1;
+}
+
+message OpenCurrencyBoxResponse {  
+	int32 error_code = 1;	
+
+	int32 box_id = 2;
+	int32 rewared_item_sn = 3;	
+	int32 amount = 4;	
+	int64 total_amount = 5;	
+
+	int32 prev_mode_level = 6; // 경험치 획득전 레벨
+	int32 current_mode_level = 7; //레벨
+	int64	mode_exp = 8;		// 게임모드 경험치	
+}
+
+message OpenCurrencyBoxNoti {  
+	uint64	target_char_seq = 1;	
+	int32 box_id = 2;	
+	int32 rewared_item_sn = 3;	
+	int32 amount = 4;	
+}
+
+// 아이템  박스 
+message OpenItemBoxRequest {  
+	int32	box_id = 1;
+}
+
+message OpenItemBoxResponse {  
+	int32 error_code = 1;	
+
+	int32 box_id = 2;
+	int32 rewared_item_sn = 3;	
+	int32 amount = 4;	
+
+	string acquired_date = 6; // 획득한 시간 + 1시간 = 다음획득 가능한 시간
+}
+
+message OpenItemBoxNoti {  
+	uint64	target_char_seq = 1;	
+	int32 box_id = 2;	
+	int32 rewared_item_sn = 3;	
+	int32 amount = 4;		
+}
+
+// 아이템 박스 정보
+message ItemBoxInfo{
+	int32 box_id = 1;
+	string acquired_date = 2; // 획득한 시간 + 1시간 = 다음획득 가능한 시간
+}
+
+message ItemBoxInfosRequest{
+
+}
+message ItemBoxInfosResponse{
+	int32 error_code = 1;	
+	repeated ItemBoxInfo item_box_infos = 2;	 // 아이템 박스 정보
+}
+
+// 오션업 층수 증가
+message OceanUpMaxFloorUpdateRequest{
+	int32 max_floor = 1;	
+	int64 reached_second = 2;
+
+}
+message OceanUpMaxFloorUpdateResponse{
+	int32 error_code = 1;
+	int32 max_floor = 2;	
+	int64 reached_second = 3;
+	int64 score = 4;
+
+	int64 rank = 5;
+}
+
+// 감정표현
+message PlayerEmotionRequest {
+	int32 emotion_id = 1;
+}
+
+message PlayerEmotionNoti {
+	uint64 char_seq = 1;
+	int32 emotion_id = 2;
+}
+
+/*************** 
+// 술레 관련 처리
+***************/ 
+//// 게임 레디 상태
+message ZoneGameReadyNoti {  
+	repeated uint64	hunter_char_seqs = 1;	 // 술레 번호
+	int32	game_mode_type = 2; // 게임 모드
+}
+//// 게임 시작 상태
+message ZoneGameStartNoti {  
+	int32 error_code = 1;	
+	repeated uint64	hunter_char_seqs = 2;	 // 술레 번호
+	int32	game_mode_type = 3; // 게임 모드
+}
+//// 게임 완료
+message ZoneGameCompletedNoti{  
+	int32 game_ending_type = 1; // 게임 엔딩 종류 GameEndingType(1:게임 시간 만료, 2: 술레 접속 종료)
+	uint64 rewared_money = 2;	
+	uint64 total_money = 3;	
+	int32 winner_type = 4; // 승리자 WinnerType (1:일반, 2: 술레)
+	int32	game_mode_type = 5; // 게임 모드
+
+	int32 prev_mode_level = 6; // 경험치 획득전 레벨
+	int32 current_mode_level = 7; // 경험치 획득전 레벨
+	int64	mode_exp = 8;		// 게임모드 경험치
+	
+	uint64 playing_rewared_money = 9;	// 플레이 중 얻은 보상
+	uint64 total_rewared_money = 10;	// 승리 패배 보상 + 플레이 중 얻은 보상
+	int32 catched_count = 11;	// 술레:잡은 횟수, 유저:노치해지횟수
+}
+
+// 게임 상태
+message ZoneGameStatusNoti{  
+	int32 game_mode_state = 1; // 게임 모드 상태 GameModeState(0:None, 1:Ready, 2:Start)
+	repeated uint64	hunter_char_seqs = 2;	 // 술레 번호
+	int64	remain_second = 3;		// 게임 플레이시, 남은 시간
+	int32	notch_unlock_count = 4; // 노치 unlock한 수
+	int32	game_mode_type = 5; // 게임 모드
+}
+
+// 게임 모드 레벨 변경
+message ZoneChagedGameModeLevelNoti{  
+	uint64	target_char_seq = 1;	
+	int32	game_mode_level = 2; // 레벨
+}
+
+//술레가 공격
+message DamageRequest{  
+	uint64	target_char_seq = 1;	
+}
+message DamageNoti{  
+	uint64	target_char_seq = 1;
+	int32 damage = 2;	
+}
+
+// 유저 Die
+message DeathNoti{  
+	uint64	target_char_seq = 1;	
+	int64	catched_gold = 2; // 잡았을때 골드
+}
+
+// 부활
+message ResurrectionRequest{  	
+	uint64	target_char_seq = 1;	
+}
+message ResurrectionResponse{  
+	int32 error_code = 1;	
+	int32 resurrection_type = 2; // ResurrectionType(1:광고의 의한 부활, 2:클로버에 의한 부활, 3:다른 유저 부활, 4:게임 종료)
+}
+message ResurrectionNoti{  
+	uint64	target_char_seq = 1;
+	int32 resurrection_type = 2; // ResurrectionType(1:광고의 의한 부활, 2:클로버에 의한 부활, 3:다른 유저 부활, 4:게임 종료)
+}
+
+// 부활(스스로 부활)
+message ResurrectionSelfRequest{  	
+	int32 used_clover = 1;
+	int32 ad_watched = 2;	// 광고를 보았는지 여부
+}
+message ResurrectionSelfResponse{  
+	int32 error_code = 1;	
+	uint64	total_clover = 2;
+}
+
+// 부활(시간 초과에 의한 부활)
+message ResurrectionSelfByTimeOverRequest{
+}
+
+message ResurrectionSelfByTimeOverResponse{  
+	int32 error_code = 1;		
+}
+
+// 노치 설치
+message NotchInfo {
+	int32 id = 1;	
+	Position position = 2;
+	int32 unlocked = 3;	// 해지 여부
+	uint64	unlock_char_seq = 4; // 노치를 해지한 유저
+}
+message NotchUnlockData {  
+	uint64	char_seq = 1; // 노치를 해지한 유저
+	int32 unlock_count = 2;	// 해치 수
+}
+
+message NotchMountRequest {
+	repeated NotchInfo notches = 1;
+}
+message NotchMountResponse {  
+	int32	error_code = 1;	
+}
+message NotchMountNoti {
+	repeated NotchInfo notches = 1;
+}
+
+// 노치 해제
+message NotchUnlockRequest{  
+	int32	unlock_notch_id = 1;
+}
+
+message NotchUnlockResponse{  
+	int32	error_code = 1;	
+	uint64 reward_money = 2;	
+}
+
+message NotchUnlockNoti{  
+	int32	unlock_notch_id = 1;
+	int32	unlock_count = 2; // 전체 unlock수
+	repeated NotchUnlockData notch_data = 3;
+}
+
+// 노치 상태 요청
+message NotchStatusRequest{
+
+}
+message NotchStatusResponse{
+	int32	error_code = 1;	
+	repeated NotchInfo notches = 2;
+	repeated NotchUnlockData notch_data = 3;
+}
+
+// Move
+message MoveRequest {    
+	int32		move_type = 1;	// MoveType
+	Position	position = 2;			
+	int32 		dir = 3;				
+	Position	velocity = 4;			
+	int32 		vertical_velocity = 5;	
+	int32		jump = 6;				
+	int32		checked_validate = 7;			
+	int64		now_tick_time = 8;
+}
+
+message MoveNoti {    
+	uint64		char_seq = 1;
+
+	int32		move_type = 2;	// MoveType
+	Position	position = 3;			
+	int32 		dir = 4;				
+	Position	velocity = 5;			
+	int32 		vertical_velocity = 6;	
+	int32		jump = 7;				
+
+	int32		vehicle_item_sn = 8; // 탈것 index
+}
+
+/////////////// 시즌 아이템
+// 시즌 아이템 착용
+message EquipSeasonItemRequest {    
+	uint64		item_seq = 1;	
+	string		ingame_parts = 2; // 모드에서 사용하는 파츠
+}
+
+message EquipSeasonItemResponse {    
+	int32		error_code = 1;
+	uint64		item_seq = 2;	
+}
+
+message EquipSeasonItemNoti {    
+	uint64		char_seq = 1;
+	int32		item_sn = 2; // 착용 번호 index
+	uint64		item_seq = 3;
+	int32		item_equip_type = 4; // SeasonItemEquipType(1:가방, 2:장비, 3: 탈것)
+	string		ingame_parts = 5; // 모드에서 사용하는 파츠
+	int32		vehicle_item_sn = 6; // 이 유저 탈것 아이템 번호
+}
+
+// 시즌 아이템 해제
+message UnEquipSeasonItemRequest {    
+	int32		item_equip_type = 1; // SeasonItemEquipType(1:가방, 2:장비, 3: 탈것)
+	string		ingame_parts = 2; // 모드에서 사용하는 파츠
+}
+
+message UnEquipSeasonItemResponse {    
+	int32		error_code = 1;
+	uint64		item_seq = 2;	
+}
+
+message UnEquipSeasonItemNoti {    
+	uint64		char_seq = 1;
+	int32		item_sn = 2; // 착용 번호 index
+	uint64		item_seq = 3;
+	int32		item_equip_type = 4; // SeasonItemEquipType(1:가방, 2:장비, 3: 탈것)
+	string		ingame_parts = 5; // 모드에서 사용하는 파츠
+	int32		vehicle_item_sn = 6; // 이 유저 탈것 아이템 번호
+}
+
+// 유저 모션
+message BehaviorRequest{
+	int32 move_type = 1; // MoveType
+}
+
+message BehaviorNoti{
+	uint64	char_seq = 1;
+	int32 move_type = 2; // MoveType
+}
+
+// 채팅 메시지
+message ZoneChatRequest {  
+  string chat = 1;
+}
+
+message ZoneChatNoti {  
+  string	chat = 1;
+  uint64	char_seq = 2;
+}
+
+// 시스템 메시지
+message SysMessageRequest {  
+  int32 type = 1;	// SysMessageType( 1:경고, 2:알림, 3:월드)        
+  uint64 char_seq = 2;
+  string message = 3;
+}
+
+message SysMessageNoti {  
+  int32 type = 1;
+  string message = 2;
+}
+
+
+////////////////// 오브젝트 관련 처리
+// 오브젝트 정보
+message ObjectInfo {
+	uint64 char_seq = 1;
+	int32 object_id = 2;
+	Position position = 3;
+	Position rotation = 4;
+	int32 state = 5;
+	int32 own_type = 6;
+}
+
+// 오브젝트 정보 알림
+message ObjectListNoti {
+	repeated ObjectInfo object_infos = 1;
+}
+
+// 오브젝트 사용
+message ObjectUseRequest {
+	int32 object_id = 1;
+}
+
+message ObjectUseResponse {
+	int32 error_code = 1;
+	uint64 char_seq = 2;
+	int32 object_id = 3;
+}
+
+message ObjectUseNoti {
+	uint64 char_seq = 1;
+	int32 object_id = 2;
+}
+
+// 오브젝트 사용 종료
+message ObjectUseEndRequest {
+	int32 object_id = 1;
+}
+
+message ObjectUseEndResponse {
+	int32 error_code = 1;
+	uint64 char_seq = 2;
+	int32 object_id = 3;
+}
+
+message ObjectUseEndNoti {
+	uint64 char_seq = 1;
+	int32 object_id = 2;
+}
+
+// 오브젝트 상태
+message ObjectStateRequest {
+	int32 object_id = 1;
+	int32 state = 2;
+}
+
+message ObjectStateNoti {
+	uint64 char_seq = 1;
+	int32 object_id = 2;
+	int32 state = 3;
+}
+
+// 오브젝트 소유자 변경
+message ObjectOwnTypeRequest {
+	int32 object_id = 1;
+	int32 own_type = 2;
+}
+
+message ObjectOwnTypeNoti {
+	uint64 char_seq = 1;
+	int32 object_id = 2;
+	int32 own_type = 3;
+}
+
+// 오브젝트 이동
+message ObjectTransformRequest {
+	int32 object_id = 1;
+	int32 move_type = 2;
+	Position position = 3;
+	Position rotation = 4;
+	Position velocity = 5;
+}
+
+message ObjectTransformNoti {
+	uint64 char_seq = 1;
+	int32 object_id = 2;
+	int32 move_type = 3;
+	Position position = 4;
+	Position rotation = 5;
+	Position velocity = 6;
+}
+
+// 유저 액션
+message PlayerActionRequest {
+	int32 object_id = 1;
+	int32 action_id = 2;
+	int32 is_in_action = 3;
+}
+
+message PlayerActionNoti {
+	uint64 char_seq = 1;
+	int32 object_id = 2;
+	int32 action_id = 3;
+	int32 is_in_action = 4;
+}
+
+// 유저 볼 액션
+message PlayerBallActionRequest {
+	int32 ball_type = 1; // BallActionType (1: throw, 2:kick, 3:Coin, 4:PutDown)
+	Position ball_position = 2;
+	Position velocity = 3;
+	Position force = 4;
+	Position hit_point = 5;	
+}
+
+message PlayerBallActionNoti {
+	uint64 char_seq = 1;
+	int32 ball_type = 2; // BallActionType (1: throw, 2:kick, 3:Coin, 4:PutDown)
+	Position ball_position = 3;
+	Position velocity = 4;
+	Position force = 5;
+	Position hit_point = 6;	
+}
+
+// 시즌 아이템 구매
+message BuySeasonItemRequest{	
+	int32 game_mode_type = 1; // GameModeType(1: 삽투사모드)
+	int32 shop_item_idx = 2; //
+}
+
+message BuySeasonItemResponse{
+	int32 error_code = 1;
+		
+	uint64 total_money = 3;	
+	BaseItem base_item = 4;
+	uint64 total_premiun_money = 5;	
+
+	uint64 total_diamond = 6;	
+	uint64 total_premium_diamond = 7;	
+	uint64	total_bell = 8;
+}
+
+// 시즌 아이템 삭제
+message DeletedSeasonItemRequest{	
+	int32 game_mode_type = 1; // GameModeType(1: 삽투사모드)
+	int32 item_idx = 2; //
+}
+
+message DeletedSeasonItemResponse{
+	int32 error_code = 1;	
+}
+
+// 아이템 판매
+message SellItemRequest{	
+	repeated uint64 unique_item_seqs = 1; // 판매 시도한 아이템
+}
+
+message SellItemResponse{
+	int32 error_code = 1;
+
+	uint64 total_money = 2;
+	uint64 added_money = 3;
+	uint64 total_premium_money = 5;
+	repeated uint64 unique_item_seqs = 4; // 판매가 완료되어 삭제된 아이템
+}
+
+// 아이템 인벤 확장
+message ItemInvenExpandRequest{
+	int32 added_inven_size = 1;
+}
+
+message ItemInvenExpandResponse{
+	int32 error_code = 1;
+	int32 total_inven_size = 2;
+}
+
+////////////////// 눈 오브젝트 관련 처리
+// 오브젝트 정보
+message SnowObjectInfo {	
+	int32 object_id = 1;	// 눈 아이디
+	Position position = 2;
+	int32 point = 3;		// 눈이 쌓인 수치
+	int32 time_since_changed_sec = 4;
+}
+
+message UsedSnowObjectInfo {	
+	int32 object_id = 1;			// 눈 아이디	
+	int32 decrease_point = 2;		// 눈 사용 포인트
+}
+
+// 눈 쌓기 점수 랭킹
+message RankInfo {	
+	string	char_seq = 1;
+	string	nickname = 2;
+	string	point = 3;		// 눈이 쌓인 수치
+	string	user_seq = 4;
+	int32	prev_rank = 5; // 이전 랭크
+}
+
+
+// 오브젝트 정보 알림
+message SnowObjectListNoti {
+	repeated SnowObjectInfo snow_object_infos = 1;
+}
+
+// 눈 오브젝트 사용
+message SnowObjectUseRequest {
+	repeated UsedSnowObjectInfo used_snow_object_infos = 1;
+}
+
+message SnowObjectUseResponse {    
+	int32		error_code = 1;	
+
+	uint64		stored_snow_item_seq = 2;			// 눈을 저장하고 있는 아이템 seq
+	int64		stored_snow_item_snow_point = 3;	// 눈 포인트
+}
+
+// 획득가능한 오브젝트
+message CollectibleObject {
+	int32 unique_id = 1;	
+	int32 obj_id = 2;	
+	Position position = 3;
+	uint64	owner_char_seq = 4;	// 오브젝트 획득한 유저
+	int32	arrived_destination_id = 5;	// 목적에 도착했는지 여부
+	int32 zone_object_type = 6;		// 오브젝트 타입(ZoneObjectType)
+	int32 rewared_group_id = 7;		// 보상 그룹 ID
+}
+
+// 목적지 오브젝트 정보
+message CollectibleDestinationObject {
+	int32 unique_id = 1;	
+	int32 obj_id = 2;
+	int32	zone_object_type = 3;		// 오브젝트 타입(ZoneObjectType)
+}
+
+message CollectibleObjectArrivedInfo{
+    int32 source_unique_id = 1;
+    int32 dest_unique_id = 2;
+}
+
+// 획득가능 오브젝트 상태
+message CollectObjStatusRequest{
+
+}
+message CollectObjStatusResponse{
+	int32	error_code = 1;	
+	repeated CollectibleObject objects = 2;
+	int32	total_object_count = 3;
+	int32	arrived_object_count = 4;
+}
+
+// 목적지 오브젝트 요청
+message CollectDestObjStatusRequest{
+
+}
+message CollectDestObjStatusResponse{
+	int32	error_code = 1;	
+	repeated CollectibleDestinationObject objects = 2;
+	int32	total_object_count = 3;
+	int32	arrived_object_count = 4;
+}
+
+
+// 오브젝트 획득
+message CollectObjAcquiredRequest{  
+	repeated int32	unique_obj_ids = 1;
+}
+message CollectObjAcquiredResponse{  
+	int32	error_code = 1;	
+	repeated int32	successful_unique_obj_ids = 2;
+	repeated int32	fail_unique_obj_ids = 3;
+	uint64	owner_char_seq = 4;	// 오브젝트 획득한 유저
+}
+message CollectObjAcquiredNoti{  
+	repeated int32	unique_obj_ids = 1;	
+	uint64	owner_char_seq = 3;	// 오브젝트 획득한 유저
+
+	int32	total_object_count = 4;
+	int32	arrived_object_count = 5;
+}
+
+// 오브젝트 목적지 도착
+message CollectObjArrivedRequest{  
+	repeated CollectibleObjectArrivedInfo	obj_infos = 1;
+}
+message CollectObjArrivedResponse{  
+	int32	error_code = 1;		
+
+	int64	rewared_gold = 3;
+	int64	rewared_diamond = 4;
+	int64	rewared_clover = 5;
+	int64	rewared_bell = 15;
+
+	int64	total_gold = 6;
+	int64	total_diamond = 7;
+	int64	total_clover = 8;
+	int64	total_bell = 9;
+	int64	total_color_tube = 12;
+
+	int64	total_premium_gold = 13;
+	int64	total_premium_diamond = 14;
+
+	repeated InventoryItem rewared_items = 11; // 보상 아이템들
+}
+
+message CollectObjArrivedNoti{  
+	repeated CollectibleObjectArrivedInfo	obj_ids = 1;		
+	uint64	owner_char_seq = 2;	// 오브젝트 획득한 유저
+
+	int32	total_object_count = 3;
+	int32	arrived_object_count = 4;
+}
+
+// 인게임 모드 인벤토리 요청
+message InGameInventoryRequest {	
+	int32	game_mode_type = 1; // GameModeType	
+}
+message InGameInventoryResponse {	
+	int32 error_code = 1;	
+	repeated InventoryItem items = 2;
+}
+
+// 인게임 모드 인벤토리 아이템 장착
+message InGameEquipItemRequest {	
+	int32	game_mode_type = 1; // GameModeType
+	uint64		item_seq = 2;	
+	int32	item_id = 3;	
+	int32	equip = 4;	// 0:미장착, 1:장착
+	string		ingame_parts = 5; // 모드에서 사용하는 파츠
+}
+message InGameEquipItemResponse {	
+	int32 error_code = 1;		
+}
+
+message InGameEquipItemNoti {	
+	uint64		char_seq = 1;
+	int32		item_sn = 2; // 착용 번호 index		
+	string		ingame_parts = 3; // 모드에서 사용하는 파츠	
+}
+
+// 아이스 관련 처리
+message IceObjectInfo {	
+	int32 object_id = 1;	// 눈 아이디
+	Position position = 2;
+	int32 point = 3;		// 눈이 쌓인 수치
+}
+
+message UsedIceObjectInfo {	
+	int32 object_id = 1;			// 얼음 아이디	
+	int32 decrease_point = 2;		// 얼음 사용 포인트
+}
+
+// 오브젝트 정보 알림
+message IceObjectListNoti {
+	repeated IceObjectInfo ice_object_infos = 1;
+	repeated int32 respawn_ice_ids = 2; // 리스폰된 얼음 Id
+	repeated int32 destoyed_ice_ids = 3; // 파괴된 얼음 id
+}
+
+// 눈 오브젝트 사용
+message IceObjectUseRequest {
+	repeated UsedIceObjectInfo used_ice_object_infos = 1;
+}
+
+message IceObjectUseResponse {    
+	int32		error_code = 1;	
+
+	uint64		stored_snow_item_seq = 2;			// 눈을 저장하고 있는 아이템 seq
+	int64		stored_snow_item_snow_point = 3;	// 눈 포인트
+}
+
+/**** end Zone Server ****/
+
+/**** Room Server ****/
+///////// Room 관련
+// 룸서버 입장
+message RoomServerEnterRequest {  
+	string session_guid = 1;		
+}
+
+message RoomServerEnterResponse {  
+	int32 error_code = 1;
+
+	uint64 char_seq	 = 2;
+}
+
+message RoomCharacter {  
+	BaseCharacterInfo base_character_info = 1;
+	int32 team = 2;	// 팀 (0:없음, 1:레드, 2:블루)
+	int32 room_authority = 3;	 // 룸 권한(0:일반, 1:방장)
+	int32 pos = 4;		// 캐릭터 위치
+	int32 ready = 5;	// 레디 여부(0:notready, 1:ready)
+
+	int32		move_type = 6;	// MoveType
+	Position	position = 7;			
+	int32 		dir = 8;					
+
+	int32 action_object_id = 9;
+	int32 action_id = 10;
+	int32 is_in_action = 11;
+}
+
+message RoomInfo {  
+	uint64 room_seq	 = 1;
+	uint64 master_char_seq	 = 2; // 방장
+
+	int32	game_mode = 3;	// 게임 모드
+	string	name = 4;				// 룸 명
+	
+	int32	user_count = 5;	// 접속된 유저 수
+	int32	max_user_count = 6;		// 최대 인원	
+
+	int32	song_sn = 7;			// 곡
+	int32	stage_sn = 8;			// 스테이지		
+	
+	int32	visible = 9;				// 방 표시 유무
+	int32	difficulty_type = 10;			// 난이도 (DifficultyType 1:쉬움, 2:중간, 3:어려움)		
+
+	string	mater_profile_image_url = 11;			// 방장의 프로필 이미지
+
+	string	server_ip = 12;		// 룸서버 IP
+	int32	server_port = 13;
+	int32	map_index = 14;
+
+	int32	gaming = 15; // 게임 중 여부
+
+
+}
+
+//Room 생성
+message RoomCreateRequest {  
+	int32	game_mode = 1;	// 게임 모드
+	
+	string name = 2;				// 룸 명	
+	int32 max_user_count = 3;		// 최대 인원
+
+	int32 song_sn = 4;				// 곡
+	int32 stage_sn = 5;				// 스테이지	
+
+	int32	visible = 6;				// 룸 표시 유무(0:표시안함, 1:표시)
+	int32	difficulty_type = 7;			// 난이도 (DifficultyType 1:쉬움, 2:중간, 3:어려움)	
+
+	int32	map_index = 8;				// 맵 번호
+}
+
+message RoomCreateResponse {  
+	int32 error_code = 1;
+	uint64 room_seq	 = 2;
+}
+
+// 룸리스트 요청
+message RoomListRequest {  
+	string session_guid = 1;		
+	int32 game_mode = 2;	
+}
+
+message RoomListResponse {  
+	int32 error_code = 1;	
+	string session_guid = 2;		
+	repeated RoomInfo room_infos = 3;
+}
+
+// 룸 입장
+message RoomEnterRequest{
+	uint64 room_seq	 = 1;		
+	int32	game_mode = 2;	// 게임 모드
+}
+
+message RoomEnterResponse{
+	int32 error_code = 1;		
+	RoomInfo room_info = 2;
+	repeated RoomCharacter room_chars = 3;
+}
+
+message RoomEnterNoti{
+	RoomCharacter room_char = 1;
+}
+
+// 룸 나오기
+message RoomLeaveRequest{	
+}
+
+message RoomLeaveResponse{
+	int32 error_code = 1;		
+}
+
+message RoomLeaveNoti {
+	uint64	char_seq = 1;
+}
+
+// 룸유저 정보 요청
+message RoomCharListRequest{	
+	
+}
+
+message RoomCharListResponse{
+	int32 error_code = 1;
+	repeated RoomCharacter char_infos = 2;
+}
+
+
+// 룸 방장 변경
+message RoomMasterChangeRequest{	
+	uint64 target_char_seq = 1;
+}
+
+message RoomMasterChangeResponse{
+	int32 error_code = 1;	
+}
+
+message RoomMasterChangeNoti{	
+	uint64 master_char_seq = 1;
+}
+
+// 룸 팀 변경
+message RoomTeamChangeRequest{
+	int32 team = 1;		// 팀 (0:없음, 1:레드, 2:블루)
+}
+
+message RoomTeamChangeResponse{
+	int32 error_code = 1;	
+}
+
+message RoomTeamChangeNoti{	
+	uint64 char_seq = 1;
+	int32 team = 2;		// 팀 (0:없음, 1:레드, 2:블루)
+}
+
+// 룸 게임 레디
+message RoomGameReadyRequest{	
+	int32 ready = 1;
+	int32 position = 2;		// 위치 (reday:1일때 반드시 0보다 커야한다)
+}
+
+message RoomGameReadyResponse{
+	int32 error_code = 1;	
+}
+
+message RoomGameReadyNoti{	
+	uint64 char_seq = 1;
+	int32 ready = 2;		
+	int32 position = 3;		// 위치
+}
+
+// 룸 게임 시작
+message RoomGameStartRequest{	
+}
+
+message RoomGameStartResponse{
+	int32 error_code = 1;	
+	string stared_game_guid = 2;
+}
+
+message RoomGameStartNoti{	
+	string stared_game_guid = 1;
+	int32 error_code = 2;
+	uint64 master_char_seq	 = 3; // 방장
+}
+
+///// 룸 게임 종료
+// 룸 유저 정보
+message RoomRewaredCharacter
+{
+	uint64 char_seq = 1;
+	string nickname = 2;
+	int64 score = 3;
+	int64 bonus_score = 4;
+	int64 total_score = 5;
+	int64 added_gold = 6;
+}
+
+
+message RoomGameEndRequest{	
+	int64 score = 1;		// 게임 포인트
+	string stared_game_guid = 2;
+}
+
+message RoomGameEndResponse{
+	int32 error_code = 1;	
+
+	int64		score = 2;		// 게임 포인트
+	int64		bonus_score = 3; // 보너스 점수
+	int64		total_score = 4; // 총 점수
+	uint64		total_money = 5;	// 게임머니(골드)
+	int64		added_money = 6;	// 게임머니(골드)	
+	int64		bonus_money = 7;	// 보너스(골드)
+
+	int32 prev_mode_level = 8; // 경험치 획득전 레벨
+	int32 current_mode_level = 9; // 경험치 획득전 레벨
+	int64	mode_exp = 10;		// 게임모드 경험치
+}
+
+message RoomGameEndNoti{	
+	repeated RoomRewaredCharacter characters = 1;
+}
+
+// 룸 옵션 변경
+message RoomOptionChangedRequest{	
+	int32	game_mode = 1;	// 게임 모드
+	
+	string name = 2;				// 룸 명	
+	int32 max_user_count = 3;		// 최대 인원
+	int32 require_level = 4;		// 필요 레벨
+	int32 require_grade = 5;		// 필요 등급
+
+	int32 song_sn = 6;				// 곡
+	int32 stage_sn = 7;				// 스테이지	
+
+	int32	visible = 8;				// 표시 여부
+	int32	difficulty_type = 9;			// 난이도 (DifficultyType 1:쉬움, 2:중간, 3:어려움)	
+	int32	keynote_type = 10;			// 키노트 타입 (KeyNoteType 1:싱글탭, 2:더블탭, 3:드래그)
+}
+
+message RoomOptionChangedResponse{
+	int32 error_code = 1;	
+}
+
+message RoomOptionChangedNoti{	
+	RoomInfo	room_info = 1;
+}
+
+// 룸 채팅
+message RoomChatRequest{	
+	string chat = 1;
+}
+
+message RoomChatNoti{	
+	string	chat = 1;
+	uint64	char_seq = 2;
+}
+
+// 룸 게임 하일라이트 정산
+message RoomGameHighlightRequest{	
+	int64 score = 1;		// 게임 포인트
+}
+
+message RoomGameHighlightResponse{
+	int32 error_code = 1;	
+}
+
+message RoomGameHighlightNoti{
+	uint64	highlight_char_seq = 1;
+	int64	score = 2;		// 게임 포인트
+}
+
+// 룸 게임 광고에 따른 보상
+message RoomBonusRewardRequest{	
+	string game_guid = 1;
+	int32 advertising = 2; // 광고로 추가 보상했는지 유무
+}
+
+message RoomBonusRewardResponse{
+	int32	error_code = 1;	
+	int64	rewared_gold = 2;
+	int64	total_gold = 3;
+}
+
+message RoomChagedGameModeLevelNoti{  
+	uint64	target_char_seq = 1;	
+	int32	game_mode_level = 2; // 레벨
+}
+
+
+/////// 몬스터 관련
+message MonsterInfo {  
+	uint64 room_seq	 = 1;		
+	uint64 monster_seq	 = 2;		
+	int32	map_index = 3;
+	
+	string	name = 4;				// 몬스터 명
+	int32	monster_id = 5;			// 몬스터 ID
+	
+	
+}
+/**** end Room Server ****/
+
+/**** Zone&Room Server ****/
+message ChangeItemInfo { 	
+	int32 item_sn = 1;	
+	int32 color_id = 2;
+}
+
+message ChaneItemRequest {	
+	repeated ChangeItemInfo equip_items = 1;
+	repeated ChangeItemInfo unequip_items = 2;
+}
+
+message ChangeItemNoti {	
+	uint64		char_seq = 1;
+	repeated ChangeItemInfo equip_items = 2;
+	repeated ChangeItemInfo unequip_items = 3;
+}
+
+/**** end Zone&Room Server ****/
+
+/**** Commnity Server ****/
+// 커뮤니티 서버 입장
+message CommnunityServerEnterRequest{	
+	string session_guid = 1;
+}
+
+message CommnunityServerEnterResponse{
+	int32 error_code = 1;	
+}
+
+// 룸 서버 유저 초대
+message RoomUserInvitedRequest{	
+	uint64 room_seq	 = 1;
+	RoomServerInfo room_server_info = 2;	
+	uint64 from_char_seq	 = 3; // 클라이언트에서는 이부분 0으로 채워도 됨
+	uint64 target_char_seq	 = 4;
+	int32 game_mode = 5;
+}
+message RoomUserInvitedResponse{
+	int32 error_code = 1;	
+}
+
+message RoomUserInvitedNoti{
+	uint64 from_char_seq	 = 1;
+	string from_char_nickname = 2;	
+
+	uint64 room_seq	 = 3;
+	RoomServerInfo room_server_info = 4;		
+	int32 game_mode = 5;
+}
+
+// 존 서버 유저 초대
+message ZoneUserInvitedRequest{	
+	ZoneServerInfo zone_server_info = 1;
+	uint64 from_char_seq	 = 2; // 클라이언트에서는 이부분 0으로 채워도 됨
+	uint64 target_char_seq	 = 3;
+
+	int32 map_index = 4;
+	int32 zone_index = 5;
+	int32 game_mode = 6;
+}
+message ZoneUserInvitedResponse{
+	int32 error_code = 1;	
+}
+
+message ZoneUserInvitedNoti{
+	uint64 from_char_seq	 = 1;
+	string from_char_nickname = 2;	
+
+	int32 map_index = 3;
+	int32 zone_index = 4;
+	ZoneServerInfo zone_server_info = 5;
+	int32 game_mode = 6;
+}
+
+/////////////// Chat 관련
+message ChatRoomUserInfo {
+	string name = 1;
+	string user_seq = 2;
+	string char_seq = 3;	
+	string profile_image = 4;
+}
+
+message ChatRoomInfo {
+	string room_id = 1;
+	string name = 2;
+	string lastest_chat = 3;
+	int32	unreaded_message_count = 4;		// 내가 읽지 않은 메시지가 있음
+	repeated ChatRoomUserInfo users = 5;
+
+	string	chat_server_host	= 6;
+	int32	chat_server_port	= 7;
+
+	string updated_date = 8;
+}
+
+message ChatMessageInfo {
+	string room_id = 1;
+	string chat_id = 2;
+	repeated string unread_user_seqs = 3;
+	repeated string read_user_seqs = 4;
+	string writed_user_seq = 5;
+	string chat = 6;
+	int32 chat_type = 7;
+	string json_data = 8;
+	string created_date = 9;
+	
+}
+
+// Chat 룸생성
+message ChatRoomCreatedRequest {
+	string session_guid = 1;
+
+	string	room_name	= 2;
+	string	target_user_seq	= 3;
+}
+
+message ChatRoomCreatedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+
+	string	room_id	= 3;
+	string	room_name	= 4;
+	repeated ChatRoomUserInfo users = 5;
+
+	string	chat_server_host	= 6;
+	int32	chat_server_port	= 7;
+}
+
+message ChatRoomCreatedNoti {  
+	string	room_id	= 1;
+	string	room_name	= 2;	
+
+	string to_char_seq = 3;
+
+	repeated ChatRoomUserInfo users = 4;
+
+	string	chat_server_host	= 5;
+	int32	chat_server_port	= 6;
+}
+
+// 채팅 추가 - 
+message ChatRoomAddedChatRequest {
+	string session_guid = 1;
+
+	string room_id = 2;
+	string chat = 3;	
+	int32 chat_type = 4;
+	string json_data = 5;
+}
+
+message ChatRoomAddedChatResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;	
+
+	string chat_id = 3;	
+}
+
+message ChatRoomAddedChatNoti {  	
+	string	room_id = 1;  
+
+	uint64	user_seq = 2;
+	string	chat = 3;
+
+	int32 chat_type = 4;
+	string	json_data = 5;
+
+	string chat_id = 6;	
+	repeated string unread_user_seqs = 7;
+	repeated string read_user_seqs = 8;
+	string writed_user_seq = 9;	
+}
+
+// 채팅 메시지 읽기 - 
+message ChatRoomAddedReadNoti {  	
+	string room_id = 1;
+
+	uint64	readed_user_seq = 2; //
+	repeated string chat_ids = 3;
+}
+
+// 채팅 룸 정보 갱신 가져오기
+message ChatRoomRefreshRequest {
+	string session_guid = 1;
+
+	string room_id = 2;	
+}
+
+message ChatRoomRefreshResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+	
+	string room_id = 3;	
+	string	chat_server_host	= 4;
+	int32	chat_server_port	= 5;
+}
+
+// 채팅 룸 나가기
+message ChatRoomLeavedRequest {
+	string session_guid = 1;
+
+	string room_id = 2;
+}
+
+message ChatRoomLeavedResponse {  
+	string session_guid = 1;
+	int32 error_code = 2;
+}
+
+message ChatRoomLeavedNoti {
+	string room_id = 1;
+
+	uint64	leaved_user_seq = 2; //
+}
+
+// 알림 관련 정보 변경 
+message AlertChangedNoti {
+	string target_char_seq = 1;
+}
+
+// 기능 관련 변경
+message FeatureBlockChangedNoti {	
+}
+
+// 긴급 공지 관련 공지
+message EmergencyNoticeChangedNoti{	
+}
+
+// 전체 유저에게 다이빙 알림
+message BroadcastDivingNoti{	
+	string target_nick_name = 1;
+}
+
+/**** end Commnity Server ****/
+
+/**** Chat Server ****/		
+// 채팅룸 입장하기 
+message ChatRoomEnteredRequest {
+	string session_guid = 1;
+
+	string room_id = 2;	
+}
+
+message ChatRoomEnteredResponse {  	
+	int32 error_code = 1;
+}
+
+message ChatRoomEnteredNoti {
+	string room_id = 1;
+
+	ChatRoomUserInfo	entered_user = 2; //
+}
+/**** end Chat Server ****/
+
+/**** Gmtool Server ****/	
+// GM툴에서 유저킥
+message GmtoolUserKickNoti {  		
+	string target_user_seq = 1;
+}
+
+// GM툴 채팅
+message GmtoolChatNoti {
+	string gm_name = 1;
+	string chat = 2;
+}
+
+// GM툴 예약 공지
+message GmtoolUserNoticeNoti {
+	string title = 1;
+	string content = 2;
+}
+
+/**** end Gmtool Server ****/

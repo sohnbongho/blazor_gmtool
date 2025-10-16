@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <BaseOutputPath></BaseOutputPath>
+	 <NoWarn>$(NoWarn)</NoWarn>
+  </PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<OutputPath>../Binary/Debug/Library</OutputPath>
+		<DefineConstants>;TRACE;USE_TASK</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+		<OutputPath>../Binary/Release/Library</OutputPath>
+		<DefineConstants>;USE_TASK</DefineConstants>		
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+		<RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+		<RuntimeIdentifiers>osx-x64</RuntimeIdentifiers>
+	</PropertyGroup>
+
+
+	<PropertyGroup>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<RootNamespace>Library</RootNamespace>
+	</PropertyGroup>
+
+
+	<ItemGroup>
+	  <Compile Remove="Tools\AlertMessage.cs" />
+	  <Compile Remove="Tools\Message.cs" />
+	  <Compile Remove="Tools\NatsMessages.cs" />
+	  <Compile Remove="Tools\ServerToServerMessange.cs" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+	  <None Include="Tools\AlertMessage.cs" />
+	  <None Include="Tools\Message.cs" />
+	  <None Include="Tools\NatsMessages.cs" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="Akka" Version="1.5.27.1" />
+		<PackageReference Include="Google.Apis.AndroidPublisher.v3" Version="1.67.0.3388" />
+		<PackageReference Include="Google.Apis.Auth" Version="1.67.0" />
+		<PackageReference Include="Google.Cloud.Storage.V1" Version="4.8.0" />
+		<PackageReference Include="Google.Protobuf" Version="3.27.3" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="MongoDB.Driver" Version="2.24.0" />
+		<PackageReference Include="NATS.Client" Version="1.1.1" />
+		<PackageReference Include="log4net" Version="2.0.15" />
+		<PackageReference Include="StackExchange.Redis" Version="2.7.10" />
+		<PackageReference Include="MySqlConnector" Version="2.3.1" />
+		<PackageReference Include="Dapper" Version="2.1.24" />
+		<PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+		<PackageReference Include="RabbitMQ.Client" Version="6.8.1" />		
+	</ItemGroup>
+</Project>
