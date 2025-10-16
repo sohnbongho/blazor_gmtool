@@ -1,0 +1,172 @@
+﻿
+@inject ExcelService ExcelService
+@inject IJSRuntime JS
+
+@typeparam TItem
+
+
+
+<div>
+    <table class="excel">
+        <thead>
+            <tr>
+                @foreach (var column in Columns)
+                {
+                    <th>@column</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in GetPageData())
+            {
+                <tr>
+                    @foreach (var cell in row)
+                    {
+                        <td>@cell</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="paging">
+        <button @onclick="Previous10Pages" disabled="@(_currentPage <= 10)">Previous 10 Pages</button>
+        <button @onclick="PreviousPage" disabled="@(_currentPage == 1)">Previous</button>        
+        <span>Page @_currentPage of @_totalPages</span>
+        <button @onclick="NextPage" disabled="@(_currentPage == _totalPages)">Next</button>
+        <button @onclick="Next10Pages" disabled="@(_currentPage + 10 > _totalPages)">Next 10 Pages</button>        
+        <button @onclick="DownloadExcel">DownloadExcel</button>
+        @if (VisibleExcelUploadedButton)
+        {
+            <button @onclick="UploadExcel">UploadExcel</button>
+        }        
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public List<TItem> Data { get; set; } = new();
+
+    [Parameter]
+    public List<string> Columns { get; set; } = new();
+
+    [Parameter]
+    public Func<TItem, IEnumerable<object>>? RowTemplate { get; set; } 
+
+    [Parameter]
+    public int RowsPerPage { get; set; } = 10;
+
+    [Parameter]
+    public EventCallback<bool>? ExcelModalVisibleChanged { get; set; } = null;
+
+    [Parameter]
+    public bool VisibleExcelUploadedButton { get; set; } = true;
+
+
+    private const int _maxPages = 10;
+    private int _currentPage = 1;
+    private int _totalPages;    
+
+    protected override void OnInitialized()
+    {
+        Columns = GetColumns();        
+        RowTemplate = CreateRowTemplate();
+    }
+
+    protected override void OnParametersSet()
+    {
+        SetPageData();
+    }
+
+    private Func<TItem, IEnumerable<object>> CreateRowTemplate()
+    {        
+        return item => typeof(TItem).GetProperties().Select(p => p.GetValue(item) ?? new object()).ToArray();
+    }
+
+
+    private void SetPageData()
+    {
+        int totalRows = Data.Count;
+        _totalPages = (int)Math.Ceiling(totalRows / (double)RowsPerPage);
+    }
+
+    private IEnumerable<IEnumerable<object>> GetPageData()
+    {
+        int startRow = (_currentPage - 1) * RowsPerPage;
+        int endRow = Math.Min(startRow + RowsPerPage, Data.Count);
+
+        for (int i = startRow; i < endRow; i++)
+        {
+            if (RowTemplate != null && Data[i] != null)
+            {
+                yield return RowTemplate(Data[i]);                
+            }            
+        }
+    }
+
+    private List<string> GetColumns()
+    {
+        var columns = typeof(TItem).GetProperties();
+        return columns.Select(c => c.Name).ToList();
+    }
+
+    private void NextPage()
+    {
+        if (_currentPage < _totalPages)
+        {
+            _currentPage++;
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (_currentPage > 1)
+        {
+            _currentPage--;
+        }
+    }
+
+    private void Next10Pages()
+    {
+        if (_currentPage + _maxPages <= _totalPages)
+        {
+            _currentPage += _maxPages;
+        }
+        else
+        {
+            _currentPage = _totalPages;
+        }
+    }
+
+    private void Previous10Pages()
+    {
+        if (_currentPage > _maxPages)
+        {
+            _currentPage -= _maxPages;
+        }
+        else
+        {
+            _currentPage = 1;
+        }
+    }
+
+
+    private async Task DownloadExcel()
+    {
+        var fileContents = ExcelService.GenerateExcel(Data, Columns);
+        var fileBase64 = Convert.ToBase64String(fileContents);
+
+        await JS.InvokeVoidAsync("downloadFile", "data.xlsx", fileBase64);
+    }
+
+    private async Task UploadExcel()
+    {
+        if (ExcelModalVisibleChanged != null && ExcelModalVisibleChanged.HasValue)
+        {
+            await ExcelModalVisibleChanged.Value.InvokeAsync(true);
+        }
+        
+    }
+
+}
+

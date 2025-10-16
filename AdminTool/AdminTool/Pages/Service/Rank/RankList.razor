@@ -1,0 +1,91 @@
+﻿@page "/Service/Rank/GameMode"
+
+@using AdminTool.Models
+@using AdminTool.Services.Rank
+@using Library.DBTables.MySql
+@using Library.DTO
+@using Library.Helper
+
+@inject IRankService RankService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>GameMode Rank </h3>
+
+<div class="container mt-4">
+    <!-- ComboBox Section -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="itemNumberComboBox" class="form-label">Select Rank:</label>
+            <select id="itemNumberComboBox" class="form-select" @bind="GameModeType">
+                <option value="@GameModeType.DiggingWarrior">DiggingWarrior</option>
+                <option value="@GameModeType.BubblePop">BubblePop</option>
+                <option value="@GameModeType.CutShroom">CutShroom</option>
+                <option value="@GameModeType.Cleaning">Cleaning</option>
+                <option value="@GameModeType.SoftCat">SoftCat</option>
+                <option value="@GameModeType.OceanUp">OceanUp</option>
+            </select>
+        </div>
+    </div>
+    <button class="btn btn-primary" @onclick="SearchEvent">Search </button>
+    <hr />
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Event List</h4>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>GameModeType</th>
+                        <th>NickName</th>
+                        <th>CharSeq</th>
+                        <th>Score</th>                        
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var model in Models)
+                    {
+                        <tr>
+                            <td>@model.Rank</td>
+                            <td>@model.GameModeType</td>
+                            <td>@model.NickName</td>
+                            <td>@model.CharSeq</td>
+                            <td>@model.Score</td>                            
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteRank(model.CharSeq)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+
+    private string Title { get; set; } = string.Empty;    
+    private List<GameModeRankInfo> Models { get; set; } = new List<GameModeRankInfo>();
+    private GameModeType GameModeType { get; set; } = GameModeType.DiggingWarrior;
+
+    private async Task SearchEvent()
+    {
+        Models = await RankService.FetchRanksAsync(GameModeType);
+        StateHasChanged();
+    }
+
+    private async Task DeleteRank(ulong charSeq)
+    {
+        var success = await RankService.DeleteEventAsync(GameModeType, charSeq);
+
+        if (success)
+        {
+            Models = await RankService.FetchRanksAsync(GameModeType);
+            StateHasChanged();
+        }
+    }
+}

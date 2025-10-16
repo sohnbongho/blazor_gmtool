@@ -1,0 +1,70 @@
+﻿@page "/Design/Items/Currency"
+
+@attribute [Authorize]
+<CheckedLogin />
+
+@using System.Collections.Generic
+@using System.Threading.Tasks
+@using Library.DBTables.MySql
+@inject ExcelService ExcelService
+@inject IJSRuntime JS
+@inject IDataRepository<TblDesignCurrency> TblDesignCurrencyRepo
+
+
+<PageTitle>Design</PageTitle>
+
+<h3>tbl_design_currency</h3>
+@if (false == string.IsNullOrEmpty(_statusMessage))
+{
+    var statusMessageClass = _statusMessage.StartsWith("successed") ? "success" : "danger";
+    <div class="alert alert-@statusMessageClass alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert"
+                aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        @_statusMessage
+    </div>
+}
+
+@if (_models != null)
+{
+    <UploadExcelModal TItem="TblDesignCurrency" IsVisible="@_excelUploadModalVisible"
+                      IsVisibleChanged="@OnModalVisibilityChanged" StatusEventCallback="@OnStatusCallback" />
+
+    <TableWithPaging TItem="TblDesignCurrency" Data="@_models" RowsPerPage=15
+                     ExcelModalVisibleChanged="@(EventCallback.Factory.Create<bool>(this, OnModalVisibilityChanged))" />    
+}
+
+@code {
+    private List<TblDesignCurrency> _models = null!; 
+    private bool _excelUploadModalVisible = false;
+    private string _statusMessage = string.Empty;
+
+    
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _models = TblDesignCurrencyRepo.GetAll().ToList();
+            StateHasChanged();
+        }
+    }
+    
+    private async Task OnModalVisibilityChanged(bool isVisible)
+    {
+        _excelUploadModalVisible = isVisible;
+        if (!isVisible)
+        {
+            await JS.InvokeVoidAsync("hideModal", ".modal");
+            _models = TblDesignCurrencyRepo.GetAll().ToList();
+            StateHasChanged();
+        }
+    }
+    private void OnStatusCallback(string message)
+    {
+        _statusMessage = message;
+        StateHasChanged();
+    }
+}
+
+

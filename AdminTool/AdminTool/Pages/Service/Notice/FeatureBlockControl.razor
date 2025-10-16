@@ -1,0 +1,143 @@
+﻿@page "/Service/Notice/FeatureBlockControl"
+@using AdminTool.Models
+@using AdminTool.Services.Notice
+@using Library.DBTables.MySql
+@using Library.DTO
+@using Library.Helper
+
+@inject INoticeManageService NoticeManageService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>Feature Block Control</h3>
+
+<ModalMessageBox Title="Alert" Message="@ModalMessage" ShowModal="@ShowModal" OnClose="@CloseModal" />
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h4>Create New Block</h4>
+            <div class="form-group mb-3">
+                <label for="controlType" class="form-label">Feature Control Type</label>
+                <select id="controlType" class="form-select" @bind="FeatureControlType">
+                    <option value="@FeatureControlType.None">None</option>
+                    <option value="@FeatureControlType.StyleShop">스타일샵</option>
+                    <option value="@FeatureControlType.Space">Space</option>
+                    <option value="@FeatureControlType.DailyStamp">DailyStamp</option>
+                    <option value="@FeatureControlType.Messenger">메신저</option>
+                    <option value="@FeatureControlType.DiggingWarrior">삽투사</option>
+                    <option value="@FeatureControlType.Cleaning">청소반장</option>
+                    <option value="@FeatureControlType.BubblePop">버블팝</option>
+                    <option value="@FeatureControlType.CutShroom">컷슈룸</option>
+                    <option value="@FeatureControlType.PhotoBooth">포토부스</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" @onclick="AddBlock">Add Block</button>            
+        </div>
+    </div>
+
+    <hr />
+</div>
+
+<div>&nbsp;</div>
+@if (Models != null && Models.Any())
+{
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Notice List</h4>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>FeatureControlType</th>
+                        <th>Blocked</th>                        
+                        <th>Update Date</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var model in Models)
+                    {
+                        <tr>
+                            <td>@model.Id</td>
+                            <td>@model.FeatureControlType</td>
+                            <td>@model.Blocked</td>
+                            <td>@model.UpdatedDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@model.CreatedDate?.ToString("yyyy-MM-dd HH:mm")</td>                            
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteBlock(model.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+else if (Models != null)
+{
+    <p class="text-warning">No found.</p>
+}
+
+@code {
+
+    private FeatureControlType FeatureControlType { get; set; } = FeatureControlType.None;
+    private List<FeatureControl>? Models { get; set; } = null;
+    private bool ShowModal { get; set; } = false; // 모달 표시 여부
+    private string ModalMessage { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Models = await NoticeManageService.FetchFeatureInfosAsync();
+            StateHasChanged();
+        }
+    }
+
+
+    private async Task AddBlock()
+    {
+        if (FeatureControlType != FeatureControlType.None)
+        {
+            var success = await NoticeManageService.AddFeatureBlockAsync(FeatureControlType);            
+
+            if (success)
+            {
+                Models = await NoticeManageService.FetchFeatureInfosAsync();
+                await NoticeManageService.NotiFeatureBlockChangedAsync(); // 유저들에게 알림
+
+                ShowMessageBox($"[{FeatureControlType}] 추가 성공");
+            }
+            FeatureControlType = FeatureControlType.None;
+            StateHasChanged();
+        }
+    }    
+    
+
+    private async Task DeleteBlock(ulong noticeId)
+    {
+        var success = await NoticeManageService.DeleteFeatureBlockAsync(noticeId);
+
+        if (success)
+        {
+            Models = await NoticeManageService.FetchFeatureInfosAsync();
+            await NoticeManageService.NotiFeatureBlockChangedAsync(); // 유저들에게 알림
+            ShowMessageBox("삭제성공");
+            StateHasChanged();
+        }
+    }
+    private void CloseModal()
+    {
+        ShowModal = false; // 모달을 닫음
+        StateHasChanged();
+    }
+    private void ShowMessageBox(string message)
+    {
+        ShowModal = true; // 모달을 띄움
+        ModalMessage = message;
+        StateHasChanged();
+    }
+}

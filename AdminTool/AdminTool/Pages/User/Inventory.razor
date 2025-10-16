@@ -1,0 +1,246 @@
+﻿@page "/User/Detail/Inventory"
+@using AdminTool.Services.User
+@using AdminTool.Repositories.User
+@using AdminTool.Services.Inventory
+@using AdminTool.Models
+@using Library.DBTables.MySql
+
+@inject IInventoryService InventoryService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+
+<h1>Inventory</h1>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="fieldSelect" class="form-label">Search by:</label>
+            <select id="fieldSelect" class="form-select" @bind="SelectedField">                
+                <option value="userSeq">User Seq</option>                
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="searchValue" class="form-label">Enter value:</label>
+            <input type="text" id="searchValue" class="form-control" @bind="SearchValue" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="SearchUsers">Search</button>
+        </div>
+    </div>
+</div>
+
+<div>&nbsp;</div>
+@if (InvenInfos != null && InvenInfos.Any())
+{
+    <h3>인벤토리 정보</h3>
+    <TableWithPaging TItem="TblInventoryInfo" Data="@InvenInfos" RowsPerPage=10
+                        VisibleExcelUploadedButton=false />
+}
+else if (InvenInfos != null)
+{
+    <h3>인벤토리 정보</h3>
+    <p class="text-warning">Not found.</p>
+}
+
+<div>&nbsp;</div>
+@if (Chracters != null && Chracters.Any())
+{   
+    <h3>캐릭터 정보</h3>
+    <TableWithDelete TItem="InventoryData" Data="@Chracters" RowsPerPage=10
+                     RowDeleted="@(EventCallback.Factory.Create<InventoryData>(this, OnDeleteCharter))" />
+}
+else if (Chracters != null)
+{
+    <h3>캐릭터 정보</h3>
+    <p class="text-warning">Not found.</p>
+}
+
+<div>&nbsp;</div>
+
+@if (Accessorise != null && Accessorise.Any())
+{
+    <h3>액세사리</h3>    
+    <TableWithDelete TItem="InventoryData" Data="@Accessorise" RowsPerPage=10
+                     RowDeleted="@(EventCallback.Factory.Create<InventoryData>(this, OnDeleteAccessorise))" />
+}
+else if (Accessorise != null)
+{
+    <h3>액세사리</h3>
+    <p class="text-warning">Not found.</p>
+}
+
+<div>&nbsp;</div>
+
+@if (Clothing != null && Clothing.Any())
+{
+    <h3>옷</h3>    
+    <TableWithDelete TItem="InventoryData" Data="@Clothing" RowsPerPage=10
+                     RowDeleted="@(EventCallback.Factory.Create<InventoryData>(this, OnDeleteClothing))" />
+}
+else if (Clothing != null)
+{
+    <h3>옷</h3>
+    <p class="text-warning">Not found.</p>
+}
+
+@if (Background != null && Background.Any())
+{
+    <h3>배경</h3>
+    <TableWithPaging TItem="BackgroundData" Data="@Background" RowsPerPage=10
+                     VisibleExcelUploadedButton=false />
+}
+else if (Background != null)
+{
+    <h3>배경</h3>
+    <p class="text-warning">Not found.</p>
+}
+
+
+@if (BackgroundProp != null && BackgroundProp.Any())
+{
+    <h3>배경Prop</h3>
+    <TableWithPaging TItem="BackgroundData" Data="@BackgroundProp" RowsPerPage=10
+                     VisibleExcelUploadedButton=false />
+}
+else if (BackgroundProp != null)
+{
+    <h3>배경Prop</h3>
+    <p class="text-warning">Not found.</p>
+}
+
+@if (ShowRoomInfos != null && ShowRoomInfos.Any())
+{
+    <h3>쇼룸</h3>
+    <TableWithPaging TItem="InventoryShowRoom" Data="@ShowRoomInfos" RowsPerPage=10
+                     VisibleExcelUploadedButton=false />
+}
+else if (ShowRoomInfos != null)
+{
+    <h3>쇼룸</h3>
+    <p class="text-warning">Not found.</p>
+}
+
+@code {
+    private string SelectedField { get; set; } = "userSeq";
+    private string SearchValue { get; set; } = string.Empty;    
+    private List<TblInventoryInfo>? InvenInfos { get; set; } = null;
+    private List<InventoryData>? Accessorise { get; set; } = null;
+    private List<InventoryData>? Chracters { get; set; } = null;
+    private List<InventoryData>? Clothing { get; set; } = null;
+    private List<BackgroundData>? Background { get; set; } = null;
+    private List<BackgroundData>? BackgroundProp { get; set; } = null;
+    private List<InventoryShowRoom>? ShowRoomInfos { get; set; } = null;
+
+    private ulong _searchedCharSeq = 0;
+
+    private async void SearchUsers()
+    {
+        if (InvenInfos == null)
+        {
+            InvenInfos = new();
+        }
+        InvenInfos.Clear();
+
+        if (Accessorise == null)
+        {
+            Accessorise = new();
+        }
+        Accessorise.Clear();
+
+        if (Chracters == null)
+        {
+            Chracters = new();
+        }
+        Chracters.Clear();
+
+        if (Clothing == null)
+        {
+            Clothing = new();
+        }
+        Clothing.Clear();
+
+        if (Background == null)
+        {
+            Background = new();
+        }
+        Background.Clear();
+
+        if (BackgroundProp == null)
+        {
+            BackgroundProp = new();
+        }
+        BackgroundProp.Clear();
+
+        if (ShowRoomInfos == null)
+        {
+            ShowRoomInfos = new();
+        }
+        ShowRoomInfos.Clear();
+
+
+        if (!string.IsNullOrEmpty(SelectedField) && !string.IsNullOrEmpty(SearchValue))
+        {
+            var tblMemer = await InventoryService.FetchMemberAsync(SearchValue);
+            var charSeqStr = tblMemer.char_seq.ToString();
+            _searchedCharSeq = tblMemer.char_seq;
+
+            InvenInfos = await InventoryService.FetchInventoryInfoByCharSeq(charSeqStr);
+            Accessorise = await InventoryService.FetchAccessoryByCharSeq(charSeqStr);
+            Chracters = await InventoryService.FetchCharacterByCharSeq(charSeqStr);
+            Clothing = await InventoryService.FetchClothingByCharSeq(charSeqStr);
+            Background = await InventoryService.FetchBackgroundyByCharSeq(charSeqStr);
+            BackgroundProp = await InventoryService.FetchBackgroundyPropByCharSeq(charSeqStr);            
+            ShowRoomInfos = await InventoryService.FetchShowRoomInfosByCharSeq(charSeqStr);
+        }
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// 아이템 삭제
+    /// </summary>    
+    private async Task OnDeleteCharter(InventoryData inven)
+    {
+        var charSeq = _searchedCharSeq;
+        var charSeqStr = _searchedCharSeq.ToString();
+        var itemSeq = inven.ItemSeq;
+
+        if (charSeq <= 0)
+            return;
+
+        var deleted = await InventoryService.DeleteCharacterByCharSeq(charSeqStr, itemSeq);
+        Chracters = await InventoryService.FetchCharacterByCharSeq(charSeqStr);
+
+        StateHasChanged();
+    }    
+    private async Task OnDeleteAccessorise(InventoryData inven)
+    {
+        var charSeq = _searchedCharSeq;
+        var charSeqStr = _searchedCharSeq.ToString();
+        var itemSeq = inven.ItemSeq;
+
+        if (charSeq <= 0)
+            return;
+
+        var deleted = await InventoryService.DeleteAccessoryByCharSeq(charSeqStr, itemSeq);
+        Chracters = await InventoryService.FetchAccessoryByCharSeq(charSeqStr);
+
+        StateHasChanged();
+    }    
+    private async Task OnDeleteClothing(InventoryData inven)
+    {
+        var charSeq = _searchedCharSeq;
+        var charSeqStr = _searchedCharSeq.ToString();
+        var itemSeq = inven.ItemSeq;
+
+        if (charSeq <= 0)
+            return;
+
+        var deleted = await InventoryService.DeleteClothingByCharSeq(charSeqStr, itemSeq);
+        Chracters = await InventoryService.FetchClothingByCharSeq(charSeqStr);
+
+        StateHasChanged();
+    }    
+}

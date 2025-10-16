@@ -1,0 +1,97 @@
+﻿@page "/Service/Device/BlockDevice"
+@using AdminTool.Services.Device
+@using AdminTool.Services.Notice
+@using Library.DBTables.MySql
+@using Library.DTO
+@using AdminTool.Models
+
+@inject IUserDeviceService UserDeviceService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>Block Device</h3>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h4>Add Block Device</h4>
+            <div class="form-group mb-3">
+                <label for="blockTitle" class="form-label">Title</label>
+                <input type="text" id="blockTitle" class="form-control" @bind="DeviceTitle" maxlength="63" placeholder="Enter title" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="deviceUUid" class="form-label">Device UUID</label>
+                <textarea id="deviceUUid" class="form-control" @bind="DeviceUUid" rows="3" maxlength="1023" placeholder="Enter Device UUID"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="deviceType" class="form-label">Device Type</label>
+                <select id="deviceType" class="form-select" @bind="UserDeviceType">
+                    <option value="@UserDeviceType.Android">Android</option>
+                    <option value="@UserDeviceType.iOS">iOS</option>
+                    <option value="@UserDeviceType.PC">PC</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" @onclick="AddBlockDevice">Add Device</button>
+        </div>
+    </div>
+
+    <hr />
+</div>
+<div>&nbsp;</div>
+@if (Models != null && Models.Any())
+{
+    <h3>구매 로그</h3>
+    <TableWithPaging TItem="BlockedDevice" Data="@Models" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (Models != null)
+{
+    <p class="text-warning">No devices found.</p>
+}
+
+
+@code {
+
+    private string DeviceTitle { get; set; } = string.Empty;
+    private string DeviceUUid { get; set; } = string.Empty;
+    private UserDeviceType UserDeviceType { get; set; } = UserDeviceType.Android;
+    private List<BlockedDevice>? Models { get; set; } = null;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Models = await UserDeviceService.FetchBlockDevicesAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task AddBlockDevice()
+    {
+        if (!string.IsNullOrEmpty(DeviceTitle) && !string.IsNullOrEmpty(DeviceUUid))
+        {
+            var success = await UserDeviceService.AddBlockDeviceAsync(DeviceTitle, UserDeviceType, DeviceUUid);
+
+            DeviceTitle = string.Empty;
+            DeviceUUid = string.Empty;
+
+            if (success)
+            {
+                Models = await UserDeviceService.FetchBlockDevicesAsync();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteNotice(ulong noticeId)
+    {
+        var success = await UserDeviceService.DeleteBlockDeviceAsync(noticeId);
+
+        if (success)
+        {
+            Models = await UserDeviceService.FetchBlockDevicesAsync();
+            StateHasChanged();
+        }
+    }
+}

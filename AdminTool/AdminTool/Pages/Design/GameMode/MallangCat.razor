@@ -1,0 +1,130 @@
+﻿@page "/Design/GameMode/MallangCat"
+
+@using System.Collections.Generic
+@using System.Threading.Tasks
+@using Library.DBTables.MySql
+@inject ExcelService ExcelService
+@inject IJSRuntime JS
+@inject IDataRepository<TblDesignMallangCatItem> ItemDataRepository
+@inject IDataRepository<TblDesignMallangCatReward> RewardRepository
+@inject IDataRepository<TblDesignMallangCatType> TypeRepository
+@inject IDataRepository<TblDesignMallangCatSpawnPoint> SpawnRepository
+@inject IDataRepository<TblDesignMallangCatRewardPoint> RewardPointRepository
+@attribute [Authorize]
+<CheckedLogin />
+
+<PageTitle>Mallang Cat</PageTitle>
+
+@if (false == string.IsNullOrEmpty(_statusMessage))
+{
+    var statusMessageClass = _statusMessage.StartsWith("successed") ? "success" : "danger";
+    <div class="alert alert-@statusMessageClass alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert"
+                aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        @_statusMessage
+    </div>
+}
+
+<div>&nbsp;</div>
+<h3>TblDesignMallangCatItem</h3>
+@if (_itemModels != null)
+{
+    <UploadExcelModal TItem="TblDesignMallangCatItem" IsVisible="@_excelUploadModalVisible"
+                      IsVisibleChanged="@OnModalVisibilityChanged" StatusEventCallback="@OnStatusCallback" />
+
+    <TableWithPaging TItem="TblDesignMallangCatItem" Data="@_itemModels" RowsPerPage=15
+                     ExcelModalVisibleChanged="@(EventCallback.Factory.Create<bool>(this, OnModalVisibilityChanged))" />
+}
+
+<div>&nbsp;</div>
+<h3>TblDesignMallangCatReward</h3>
+@if (_rewardModels != null)
+{
+    <UploadExcelModal TItem="TblDesignMallangCatReward" IsVisible="@_excelUploadModalVisible"
+                      IsVisibleChanged="@OnModalVisibilityChanged" StatusEventCallback="@OnStatusCallback" />
+
+    <TableWithPaging TItem="TblDesignMallangCatReward" Data="@_rewardModels" RowsPerPage=15
+                     ExcelModalVisibleChanged="@(EventCallback.Factory.Create<bool>(this, OnModalVisibilityChanged))" />
+}
+
+<div>&nbsp;</div>
+<h3>TblDesignMallangCatType</h3>
+@if (_typeModels != null)
+{
+    <UploadExcelModal TItem="TblDesignMallangCatType" IsVisible="@_excelUploadModalVisible"
+                      IsVisibleChanged="@OnModalVisibilityChanged" StatusEventCallback="@OnStatusCallback" />
+
+    <TableWithPaging TItem="TblDesignMallangCatType" Data="@_typeModels" RowsPerPage=15
+                     ExcelModalVisibleChanged="@(EventCallback.Factory.Create<bool>(this, OnModalVisibilityChanged))" />
+}
+
+
+<div>&nbsp;</div>
+<h3>TblDesignMallangCatSpawnPoint</h3>
+@if (_spawnModels != null)
+{
+    <UploadExcelModal TItem="TblDesignMallangCatSpawnPoint" IsVisible="@_excelUploadModalVisible"
+                      IsVisibleChanged="@OnModalVisibilityChanged" StatusEventCallback="@OnStatusCallback" />
+
+    <TableWithPaging TItem="TblDesignMallangCatSpawnPoint" Data="@_spawnModels" RowsPerPage=15
+                     ExcelModalVisibleChanged="@(EventCallback.Factory.Create<bool>(this, OnModalVisibilityChanged))" />
+}
+
+<div>&nbsp;</div>
+<h3>TblDesignMallangCatRewardPoint</h3>
+@if (_rewardPointModels != null)
+{
+    <UploadExcelModal TItem="TblDesignMallangCatRewardPoint" IsVisible="@_excelUploadModalVisible"
+                      IsVisibleChanged="@OnModalVisibilityChanged" StatusEventCallback="@OnStatusCallback" />
+
+    <TableWithPaging TItem="TblDesignMallangCatRewardPoint" Data="@_rewardPointModels" RowsPerPage=15
+                     ExcelModalVisibleChanged="@(EventCallback.Factory.Create<bool>(this, OnModalVisibilityChanged))" />
+}
+
+
+
+@code {
+    private List<TblDesignMallangCatItem> _itemModels = null!;
+    private List<TblDesignMallangCatReward> _rewardModels = null!;
+    private List<TblDesignMallangCatType> _typeModels = null!;
+    private List<TblDesignMallangCatSpawnPoint> _spawnModels = null!;
+    private List<TblDesignMallangCatRewardPoint> _rewardPointModels = null!;
+
+    private bool _excelUploadModalVisible = false;
+    private string _statusMessage = string.Empty;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _itemModels = ItemDataRepository.GetAll().ToList();
+            _rewardModels = RewardRepository.GetAll().ToList();
+            _typeModels = TypeRepository.GetAll().ToList();
+            _spawnModels = SpawnRepository.GetAll().ToList();
+            _rewardPointModels = RewardPointRepository.GetAll().ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnModalVisibilityChanged(bool isVisible)
+    {
+        _excelUploadModalVisible = isVisible;
+        if (!isVisible)
+        {
+            await JS.InvokeVoidAsync("hideModal", ".modal");
+            _itemModels = ItemDataRepository.GetAll().ToList();
+            _rewardModels = RewardRepository.GetAll().ToList();
+            _typeModels = TypeRepository.GetAll().ToList();
+            _spawnModels = SpawnRepository.GetAll().ToList();
+            _rewardPointModels = RewardPointRepository.GetAll().ToList();
+            StateHasChanged();
+        }
+    }
+    private void OnStatusCallback(string message)
+    {
+        _statusMessage = message;
+        StateHasChanged();
+    }
+}

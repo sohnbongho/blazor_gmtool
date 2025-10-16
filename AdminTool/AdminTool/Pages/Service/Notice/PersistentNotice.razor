@@ -1,0 +1,116 @@
+﻿@page "/Service/Notice/PersistentNotice"
+@using AdminTool.Services.Notice
+@using Library.DBTables.MySql
+@using Library.DTO
+@using Library.Helper
+
+@inject INoticeManageService NoticeManageService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>Persistent Notice</h3>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h4>Create New Notice</h4>
+            <div class="form-group mb-3">
+                <label for="noticeTitle" class="form-label">Title</label>
+                <input type="text" id="noticeTitle" class="form-control" @bind="NoticeTitle" maxlength="63" placeholder="Enter notice title" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="noticeContent" class="form-label">Content</label>
+                <textarea id="noticeContent" class="form-control" @bind="NoticeContent" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="noticeDate" class="form-label">Expiry Date</label>
+                <input type="datetime-local" id="noticeDate" class="form-control" @bind="NoticeExpiryDate" />
+            </div>
+            <button class="btn btn-primary" @onclick="AddNotice">Add Notice</button>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Notice List</h4>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Content</th>
+                        <th>Expiry Date</th>
+                        <th>Update Date</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var notice in Notices)
+                    {
+                        <tr>
+                            <td>@notice.id</td>
+                            <td>@notice.title</td>
+                            <td>@notice.content</td>                            
+                            <td>@notice.expiry_date?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@notice.updated_date?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@notice.created_date?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteNotice(notice.id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private string NoticeTitle { get; set; } = string.Empty;
+    private string NoticeContent { get; set; } = string.Empty;
+    private DateTime NoticeExpiryDate { get; set; } = DateTimeHelper.Now + TimeSpan.FromDays(7); // 기본값: 현재 시간
+    private List<TblNoticePersistent> Notices { get; set; } = new List<TblNoticePersistent>();
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Notices = await NoticeManageService.FetchPersistentNoticesAsync();
+            StateHasChanged();
+        }
+    }
+
+
+    private async Task AddNotice()
+    {
+        if (!string.IsNullOrEmpty(NoticeTitle) && !string.IsNullOrEmpty(NoticeContent))
+        {
+            var success = await NoticeManageService.AddPersistentNoticeAsync(NoticeTitle, NoticeContent, NoticeExpiryDate);
+
+            NoticeTitle = string.Empty;
+            NoticeContent = string.Empty;
+
+            if (success)
+            {                
+                Notices = await NoticeManageService.FetchPersistentNoticesAsync();
+            }            
+            StateHasChanged();
+        }        
+    }
+
+    private async Task DeleteNotice(ulong noticeId)
+    {
+        var success = await NoticeManageService.DeletePersistentNoticeAsync(noticeId);
+
+        if (success)
+        {
+            Notices = await NoticeManageService.FetchPersistentNoticesAsync();
+            StateHasChanged();
+        }
+    }
+}

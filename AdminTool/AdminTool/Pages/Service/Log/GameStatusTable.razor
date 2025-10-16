@@ -1,0 +1,111 @@
+﻿@page "/User/Service/GameStatusTable"
+
+@using AdminTool.Services.GameStatus
+@using Library.DBTables.MySql
+@using AdminTool.Models
+@using Library.Helper
+@using Library.Model
+
+@inject IGameStatusService GameStatusService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>게임 지표 현황</h3>
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="form-group mb-3">
+            <label for="dateValue" class="form-label">시작일:</label>
+            <input type="datetime-local" id="startDate" class="form-control" @bind="StartDate" />
+        </div>
+        <div class="form-group mb-3">
+            <label for="dateValue" class="form-label">종료일:</label>
+            <input type="datetime-local" id="endDate" class="form-control" @bind="EndDate" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="OnSearch">Search</button>
+        </div>
+    </div>
+</div>
+
+<div>&nbsp;</div>
+@if (UserStatus != null && UserStatus.Any())
+{
+    <TableWithPaging TItem="GameUserStatusTableData" Data="@UserStatus" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (UserStatus != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+<div>&nbsp;</div>
+@if (IOSStatus != null && IOSStatus.Any())
+{
+    <h3>IOS</h3>
+    <TableWithPaging TItem="GameIOSStatusData" Data="@IOSStatus" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (IOSStatus != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+<div>&nbsp;</div>
+@if (AndroidStatus != null && AndroidStatus.Any())
+{
+    <h3>Andriod</h3>
+    <TableWithPaging TItem="GameAndroidSStatusData" Data="@AndroidStatus" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (AndroidStatus != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+<div>&nbsp;</div>
+
+@if (OneStoreStatus != null && OneStoreStatus.Any())
+{
+    <h3>One Store</h3>
+    <TableWithPaging TItem="GameOneStoreStatusData" Data="@OneStoreStatus" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (OneStoreStatus != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+<div>&nbsp;</div>
+
+@if (LogPurchaseReceipts != null && LogPurchaseReceipts.Any())
+{
+    <h3>전체 영수증 데이터(최대1000건)</h3>
+    <TableWithPaging TItem="LogPurchaseReceipt" Data="@LogPurchaseReceipts" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (LogPurchaseReceipts != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+@code {
+    private DateTime StartDate { get; set; } = DateTimeHelper.Now.Date - TimeSpan.FromDays(1);
+    private DateTime EndDate { get; set; } = DateTimeHelper.Now.Date;
+    private List<GameUserStatusTableData> UserStatus { get; set; } = null!;
+    private List<GameIOSStatusData> IOSStatus { get; set; } = null!;
+    private List<GameAndroidSStatusData> AndroidStatus { get; set; } = null!;
+    private List<GameOneStoreStatusData> OneStoreStatus { get; set; } = null!;
+    private List<LogPurchaseReceipt> LogPurchaseReceipts { get; set; } = null!;
+
+    private async void OnSearch()
+    {
+        UserStatus = await GameStatusService.FetchGameStatusAsync(StartDate, EndDate);
+        IOSStatus = await GameStatusService.FetchIOSStatusAsync(StartDate, EndDate);
+        AndroidStatus = await GameStatusService.FetchAndriodStatusAsync(StartDate, EndDate);
+        OneStoreStatus = await GameStatusService.FetchOneStoreStatusAsync(StartDate, EndDate);
+        LogPurchaseReceipts = await GameStatusService.FetchLogPurchaseReceiptsAsync(StartDate, EndDate);
+
+        StateHasChanged();
+    }
+}

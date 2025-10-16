@@ -1,0 +1,219 @@
+﻿@using Newtonsoft.Json
+@inject ExcelService ExcelService
+@inject IJSRuntime JS
+
+@typeparam TItem
+
+<ModalOkCancel Title="Ok/Cancel" Message="@ModalMessage" ShowModal="@ShowModal"
+               OnOk="HandleOk"
+               OnCancel="HandleCancel"
+               OnClose="HandleCancel" />
+
+<div>
+    <table class="excel">
+        <thead>
+            <tr>
+                @foreach (var column in Columns)
+                {
+                    <th>@column</th>
+                }
+                <th>Actions</th> 
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var (row, index) in GetPageData().Select((r, i) => (r, i)))
+            {
+                <tr>
+                    @foreach (var cell in row)
+                    {
+                        <td>@cell</td>
+                    }
+                    <td>
+                        <button @onclick="() => DeleteRow(index)">Delete</button>
+                    </td> 
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="paging">
+        <button @onclick="Previous10Pages" disabled="@(_currentPage <= 10)">Previous 10 Pages</button>
+        <button @onclick="PreviousPage" disabled="@(_currentPage == 1)">Previous</button>
+        <span>Page @_currentPage of @_totalPages</span>
+        <button @onclick="NextPage" disabled="@(_currentPage == _totalPages)">Next</button>
+        <button @onclick="Next10Pages" disabled="@(_currentPage + 10 > _totalPages)">Next 10 Pages</button>
+        <button @onclick="DownloadExcel">DownloadExcel</button>        
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public List<TItem> Data { get; set; } = new();
+
+    [Parameter]
+    public List<string> Columns { get; set; } = new();
+
+    [Parameter]
+    public Func<TItem, IEnumerable<object>>? RowTemplate { get; set; }
+
+    [Parameter]
+    public int RowsPerPage { get; set; } = 10;
+
+    [Parameter]
+    public EventCallback<TItem>? RowDeleted { get; set; } = null;// Row 삭제 시 콜백
+
+    private string ModalMessage { get; set; } = "Are you sure you want to delete it?";
+    private bool ShowModal { get; set; } = false;
+
+
+    private const int _maxPages = 10;
+    private int _currentPage = 1;
+    private int _totalPages;
+    private int _actualIndex = -1;
+
+    protected override void OnInitialized()
+    {
+        Columns = GetColumns();
+        RowTemplate = CreateRowTemplate();
+    }
+
+    protected override void OnParametersSet()
+    {
+        SetPageData();
+    }
+
+    private Func<TItem, IEnumerable<object>> CreateRowTemplate()
+    {
+        return item => typeof(TItem).GetProperties().Select(p => p.GetValue(item) ?? new object()).ToArray();
+    }
+
+
+    private void SetPageData()
+    {
+        int totalRows = Data.Count;
+        _totalPages = (int)Math.Ceiling(totalRows / (double)RowsPerPage);
+    }
+
+    private IEnumerable<IEnumerable<object>> GetPageData()
+    {
+        int startRow = (_currentPage - 1) * RowsPerPage;
+        int endRow = Math.Min(startRow + RowsPerPage, Data.Count);
+
+        for (int i = startRow; i < endRow; i++)
+        {
+            if (RowTemplate != null && Data[i] != null)
+            {
+                yield return RowTemplate(Data[i]);
+            }
+        }
+    }
+
+    private List<string> GetColumns()
+    {
+        var columns = typeof(TItem).GetProperties();
+        return columns.Select(c => c.Name).ToList();
+    }
+
+    private void NextPage()
+    {
+        if (_currentPage < _totalPages)
+        {
+            _currentPage++;
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (_currentPage > 1)
+        {
+            _currentPage--;
+        }
+    }
+
+    private void Next10Pages()
+    {
+        if (_currentPage + _maxPages <= _totalPages)
+        {
+            _currentPage += _maxPages;
+        }
+        else
+        {
+            _currentPage = _totalPages;
+        }
+    }
+
+    private void Previous10Pages()
+    {
+        if (_currentPage > _maxPages)
+        {
+            _currentPage -= _maxPages;
+        }
+        else
+        {
+            _currentPage = 1;
+        }
+    }
+
+
+    private async Task DownloadExcel()
+    {
+        var fileContents = ExcelService.GenerateExcel(Data, Columns);
+        var fileBase64 = Convert.ToBase64String(fileContents);
+
+        await JS.InvokeVoidAsync("downloadFile", "data.xlsx", fileBase64);
+    }
+
+
+    private void DeleteRow(int rowIndex)
+    {
+        _actualIndex = (_currentPage - 1) * RowsPerPage + rowIndex; // 실제 데이터 인덱스 계산        
+        var actualIndex = _actualIndex;
+        if (actualIndex >= 0 && actualIndex < Data.Count)
+        {
+            var deletedItem = Data[actualIndex]; // 삭제된 항목 저장
+                                                 
+            // ItemName 속성 또는 메서드 확인
+            var itemNameProperty = typeof(TItem).GetProperty("ItemName");
+            var displayName = string.Empty;
+
+            if (itemNameProperty != null)
+            {
+                // ItemName 속성이 있으면 값 가져오기
+                displayName = itemNameProperty.GetValue(deletedItem)?.ToString() ?? "Unknown Item";
+            }            
+            
+            ModalMessage = $"Are you sure to delete it? {displayName}";
+
+            ShowModal = true;
+            StateHasChanged();            
+        }        
+    }
+
+    private async Task HandleOk(bool result)
+    {
+        ShowModal = false;
+        var actualIndex = _actualIndex;
+        if (actualIndex >= 0 && actualIndex < Data.Count)
+        {
+            var deletedItem = Data[actualIndex]; // 삭제된 항목 저장            
+
+            Data.RemoveAt(actualIndex); // 데이터 삭제
+            SetPageData(); // 페이지 데이터 갱신            
+
+            // RowDeleted 이벤트 콜백 호출
+            if (RowDeleted != null && RowDeleted.HasValue)
+            {
+                await RowDeleted.Value.InvokeAsync(deletedItem);
+            }
+        }
+        StateHasChanged(); // UI 갱신
+    }
+
+    private void HandleCancel(bool result)
+    {
+        _actualIndex = -1;
+        ShowModal = false;        
+        StateHasChanged();
+    }
+}
+

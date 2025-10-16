@@ -1,0 +1,140 @@
+﻿@page "/Service/GiveItem/Accessory"
+
+@using AdminTool.Services.User
+@using Library.DBTables.MySql
+@using AdminTool.Models
+@using Library.DTO
+@using System.Collections.Concurrent
+@using Library.Data.Models
+@using Library.Helper
+
+@inject IUserService UserService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>액세서리 지급</h3>
+
+<ModalMessageBox Title="Alert" Message="@ModalMessage" ShowModal="@ShowModal" OnClose="@CloseModal" />
+
+<div class="container mt-4">
+    <!-- Search Section -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <label for="fieldSelect" class="form-label">Search by:</label>
+            <select id="fieldSelect" class="form-select" @bind="SelectedField">
+                <option value="userSeq">User Seq</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="searchValue" class="form-label">Enter value:</label>
+            <input type="text" id="searchValue" class="form-control" @bind="SearchValue" />
+        </div>
+    </div>
+
+    <!-- Item Number ComboBox Section -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="itemNumberComboBox" class="form-label">Select Item:</label>
+            <select id="itemNumberComboBox" class="form-select" @bind="ItemNumber">
+                <option value="">-- Select an Item --</option>
+                @foreach (var itemSn in _itemSns)
+                {
+                    <option value="@itemSn">@ConvertHelper.GetItemName(itemSn)</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <!-- Text Input Section (Multiline) -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="textInput" class="form-label">Enter Message:</label>
+            <textarea id="textInput" class="form-control" @bind="Text" rows="4"></textarea>
+        </div>
+    </div>
+
+    <!-- Action Button Section -->
+    <div class="row">
+        <div class="col-md-4">
+            <button class="btn btn-primary w-100" @onclick="GiveItem">Give Item</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string SelectedField { get; set; } = "userSeq";
+    private string SearchValue { get; set; } = string.Empty;
+    private string ItemNumber { get; set; } = string.Empty; // 선택한 아이템 번호가 저장됨
+    private string Text { get; set; } = string.Empty; // 텍스트 필드 추가
+    private bool ShowModal { get; set; } = false; // 모달 표시 여부
+    private string ModalMessage { get; set; } = string.Empty;
+    public List<int> _itemSns = new();
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var itemInfos = ItemDBLoaderHelper.Instance.DesignBaseItemInfo.Values;
+            var items = itemInfos.Where(x => x.ItemType == MainItemType.Accessory).Select(x => x.ItemSn);
+
+            _itemSns.AddRange(items);
+
+            StateHasChanged();
+        }
+    }
+
+    private async void GiveItem()
+    {
+        if (string.IsNullOrEmpty(SearchValue))
+        {
+            ShowMessageBox("UserSeq를 입력해주세요.");
+            return;
+        }
+        if (string.IsNullOrEmpty(ItemNumber))
+        {
+            ShowMessageBox("지급할 아이템을 선택해 주세요.");
+            return;
+        }
+
+        var errorCode1 = await UserService.ValidateGiveAppearanceItemAsync(SearchValue, ItemNumber);
+        if (errorCode1 != ErrorCode.Succeed)
+        {
+            if (errorCode1 == ErrorCode.NotFoundUserSeq)
+            {
+                ShowMessageBox("없는 유저입니다.");
+            }
+            else if (errorCode1 == ErrorCode.InvalidGiveItem)
+            {
+                ShowMessageBox("지급할수 없는 아이템 타입입니다.");
+            }
+            else
+            {
+                ShowMessageBox("아이템을 지급할수 없습니다.");
+            }
+
+            return;
+        }
+        var errorCode2 = await UserService.GiftAppearanceItemAsync(SearchValue, ItemNumber, 1, Text);
+        if (errorCode2 != ErrorCode.Succeed)
+        {
+            ShowMessageBox("아이템을 지급할수 없습니다.");
+
+            return;
+        }
+        ShowMessageBox("아이템을 지급하였습니다.");
+    }
+
+    private void CloseModal()
+    {
+        ShowModal = false; // 모달을 닫음
+        StateHasChanged();
+    }
+
+    private void ShowMessageBox(string message)
+    {
+        ShowModal = true; // 모달을 띄움
+        ModalMessage = message;
+        StateHasChanged();
+    }
+}

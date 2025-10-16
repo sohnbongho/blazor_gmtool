@@ -1,0 +1,132 @@
+﻿@page "/Service/Event/EventSchedule"
+
+@using AdminTool.Models
+@using AdminTool.Services.Event
+@using Library.DBTables.MySql
+@using Library.DTO
+@using Library.Helper
+
+@inject IEventService EventService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>EventList Schedule</h3>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h4>Add </h4>
+            <div class="form-group mb-3">
+                <label for="noticeTitle" class="form-label">Title</label>
+                <input type="text" id="noticeTitle" class="form-control" @bind="Title" maxlength="63" placeholder="Enter notice title" />
+            </div>            
+            <div class="form-group mb-3">
+                <label for="startDate" class="form-label">Start Date</label>
+                <input type="datetime-local" id="startDate" class="form-control" @bind="StartDate" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="endDate" class="form-label">End Date</label>
+                <input type="datetime-local" id="endDate" class="form-control" @bind="EndDate" />
+            </div>
+            
+            <!-- ComboBox Section -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="itemNumberComboBox" class="form-label">Select Event:</label>
+                    <select id="itemNumberComboBox" class="form-select" @bind="EventType">
+                        <option value="@EventType.Pinyata">Pinyata</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" @onclick="AddEvent">Add Event</button>
+        </div>
+    </div>
+
+    <hr />
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Event List</h4>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>EventType</th>
+                        <th>Title</th>                        
+                        <th>Enable</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>                                                
+                        <th>Update Date</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var model in Models)
+                    {
+                        <tr>
+                            <td>@model.Id</td>
+                            <td>@model.EventType</td>
+                            <td>@model.Title</td>
+                            <td>@model.Enable</td>
+                            <td>@model.StartDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@model.EndDate?.ToString("yyyy-MM-dd HH:mm")</td>                            
+                            <td>@model.UpdatedDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@model.CreatedDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteNotice(model.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+
+    private string Title { get; set; } = string.Empty;    
+    private DateTime StartDate { get; set; } = DateTimeHelper.Now ; // 기본값: 현재 시간
+    private DateTime EndDate { get; set; } = DateTimeHelper.Now + TimeSpan.FromDays(365 * 10); // 기본값: 현재 시간
+    private List<EventList> Models { get; set; } = new List<EventList>();
+    private EventType EventType { get; set; } = EventType.Pinyata;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Models = await EventService.FetchEventsAsync();
+            StateHasChanged();
+        }
+    }
+
+
+    private async Task AddEvent()
+    {
+        if (!string.IsNullOrEmpty(Title))
+        {
+            var success = await EventService.AddEventAsync(Title, EventType, StartDate, EndDate);
+            Title = string.Empty;
+
+            if (success)
+            {
+                Models = await EventService.FetchEventsAsync();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteNotice(ulong noticeId)
+    {
+        var success = await EventService.DeleteEventAsync(noticeId);
+
+        if (success)
+        {
+            Models = await EventService.FetchEventsAsync();
+            StateHasChanged();
+        }
+    }
+}

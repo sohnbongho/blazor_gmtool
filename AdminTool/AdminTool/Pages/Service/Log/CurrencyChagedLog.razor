@@ -1,0 +1,108 @@
+﻿@page "/User/Service/CurrencyChagedLog"
+
+@using AdminTool.Services.GameStatus
+@using Library.DBTables.MySql
+@using AdminTool.Models
+@using Library.DTO
+@using Library.Helper
+@using Library.Model
+
+@inject IGameStatusService GameStatusService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>서버내 재화 변경</h3>
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="form-group mb-3">
+            <label for="dateValue" class="form-label">시작일:</label>
+            <input type="datetime-local" id="startDate" class="form-control" @bind="StartDate" />
+        </div>
+        <div class="form-group mb-3">
+            <label for="dateValue" class="form-label">종료일:</label>
+            <input type="datetime-local" id="endDate" class="form-control" @bind="EndDate" />
+        </div>
+        <!-- ComboBox Section -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="CurrencyTypeComboBox" class="form-label">재화 종류:</label>
+                <select id="CurrencyTypeComboBox" class="form-select" @bind="CurrencyType">
+                    <option value="@CurrencyType.Gold">Gold</option>
+                    <option value="@CurrencyType.Diamond">Diamond</option>
+                    <option value="@CurrencyType.Clover">Clover</option>
+                    <option value="@CurrencyType.Bell">Bell</option>
+                    <option value="@CurrencyType.PremiumGold">PremiumGold</option>
+                    <option value="@CurrencyType.PremiumDiamond">PremiumDiamond</option>
+                    <option value="@CurrencyType.ColorTube">ColorTube</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="ItemGainReasonComboBox" class="form-label">획득 사유:</label>
+                <select id="ItemGainReasonComboBox" class="form-select" @bind="ItemGainReason">
+                    <option value="@ItemGainReason.None">All</option>
+                    <option value="@ItemGainReason.Purchase">Purchase</option>
+                    <option value="@ItemGainReason.GamePlay">GamePlay</option>
+                    <option value="@ItemGainReason.Mail">Mail</option>
+                    <option value="@ItemGainReason.GrowClover">GrowClover</option>
+                    <option value="@ItemGainReason.DailyStamp">DailyStamp</option>
+                    <option value="@ItemGainReason.SnowToExchange">SnowToExchange</option>
+                    <option value="@ItemGainReason.MoneyToBell">MoneyToBell</option>
+                    <option value="@ItemGainReason.DiamondToBell">DiamondToBell</option>
+                    <option value="@ItemGainReason.PurchaseMulti">PurchaseMulti</option>
+                    <option value="@ItemGainReason.PurchasePackage">PurchasePackage</option>
+                    <option value="@ItemGainReason.Recepit">Recepit</option>
+                    <option value="@ItemGainReason.ArriveObject">ArriveObject</option>
+                    <option value="@ItemGainReason.BuyGameModeItem">BuyGameModeItem</option>
+                    <option value="@ItemGainReason.InitCharacter">InitCharacter</option>
+                    <option value="@ItemGainReason.BuySeasonItem">BuySeasonItem</option>
+                    <option value="@ItemGainReason.BonusReward">BonusReward</option>
+                    <option value="@ItemGainReason.Advertising">Advertising</option>
+                    <option value="@ItemGainReason.SessionClose">SessionClose</option>
+                    <option value="@ItemGainReason.ResurrectionSelf">ResurrectionSelf</option>
+                    <option value="@ItemGainReason.GameComplete">GameComplete</option>
+                    <option value="@ItemGainReason.Gift">Gift</option>
+                    <option value="@ItemGainReason.Dye">Dye</option>
+                    <option value="@ItemGainReason.MindAnalyzer">MindAnalyzer</option>
+                    <option value="@ItemGainReason.GrowCloverLeaf">GrowCloverLeaf</option>
+                    <option value="@ItemGainReason.OceanUpDirectMove">OceanUpDirectMove</option>
+                    <option value="@ItemGainReason.OceanUpGamePlay">OceanUpGamePlay</option>
+                    
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="OnSearch">Search</button>
+        </div>
+    </div>
+</div>
+
+<div>&nbsp;</div>
+@if (CurrencyChangedLogs != null && CurrencyChangedLogs.Any())
+{
+    <TableWithPaging TItem="CurrencyChangedLog" Data="@CurrencyChangedLogs" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (CurrencyChangedLogs != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+
+@code {
+    private DateTime StartDate { get; set; } = DateTimeHelper.Now.Date - TimeSpan.FromDays(1);
+    private DateTime EndDate { get; set; } = DateTimeHelper.Now.Date;
+    private List<CurrencyChangedLog> CurrencyChangedLogs { get; set; } = null!;
+    
+    private CurrencyType CurrencyType { get; set; } = CurrencyType.Gold;
+    private ItemGainReason ItemGainReason { get; set; } = ItemGainReason.None;
+
+    private async void OnSearch()
+    {
+        CurrencyChangedLogs = await GameStatusService.FetchCurrencyLogsAsync(StartDate, EndDate, CurrencyType, ItemGainReason);
+
+        StateHasChanged();
+    }
+}

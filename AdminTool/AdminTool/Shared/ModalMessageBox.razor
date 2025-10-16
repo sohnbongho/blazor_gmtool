@@ -1,0 +1,39 @@
+﻿@code {
+    [Parameter]
+    public string Title { get; set; } = "title";  // 모달 제목
+    [Parameter]
+    public string Message { get; set; } = "message"; // 모달 메시지 내용
+    [Parameter]
+    public bool ShowModal { get; set; } // 모달 표시 여부
+    [Parameter]
+    public EventCallback OnClose { get; set; } // 닫기 버튼 콜백
+}
+
+@if (ShowModal)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>@Message</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @onclick="CloseModal">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private void CloseModal()
+    {
+        ShowModal = false;
+        OnClose.InvokeAsync(); // 닫기 이벤트 호출
+    }
+}

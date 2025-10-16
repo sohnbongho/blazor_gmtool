@@ -1,0 +1,135 @@
+﻿@page "/Service/Season/ResetSchedule"
+
+@using AdminTool.Models
+@using AdminTool.Services.Season
+@using Library.DBTables.MySql
+@using Library.DTO
+@using Library.Helper
+
+@inject ISeasonService SeasonService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>Season Reset Schedule</h3>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h4>Add Reset Schedule</h4>
+            <div class="form-group mb-3">
+                <label for="seasonId" class="form-label">SeasonId</label>
+                <input type="number" id="seasonId" @bind="SeasonId" size="10" placeholder="Enter SeasonId" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="noticeTitle" class="form-label">Title</label>
+                <input type="text" id="noticeTitle" class="form-control" @bind="Title" maxlength="63" placeholder="Enter notice title" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="noticeContent" class="form-label">Content</label>
+                <textarea id="noticeContent" class="form-control" @bind="Content" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="startedDate" class="form-label">Started Ddate</label>
+                <input type="datetime-local" id="startedDate" class="form-control" @bind="StartedDate" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="noticeDate" class="form-label">Reset Date</label>
+                <input type="datetime-local" id="noticeDate" class="form-control" @bind="ResetDate" />
+            </div>
+            <button class="btn btn-primary" @onclick="AddNotice">Add Notice</button>
+        </div>
+    </div>
+
+    <hr />
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Reset Schedules</h4>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>SeasonId</th>
+                        <th>Title</th>
+                        <th>Desc</th>
+                        <th>IsExecuted</th>
+                        <th>Started Date</th>
+                        <th>Reset Date</th>
+                        <th>Update Date</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var model in Models)
+                    {
+                        <tr>
+                            <td>@model.Id</td>
+                            <td>@model.SeasonId</td>
+                            <td>@model.Title</td>
+                            <td>@model.Desc</td>
+                            <td>@model.IsExecuted</td>
+                            <td>@model.StartedDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@model.ResetDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@model.UpdatedDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@model.CreatedDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteNotice(model.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    private int SeasonId { get; set; } = 1;
+    private string Title { get; set; } = string.Empty;
+    private string Content { get; set; } = string.Empty;
+    private DateTime StartedDate { get; set; } = DateTimeHelper.Now; // 기본값: 현재 시간
+    private DateTime ResetDate { get; set; } = DateTimeHelper.Now + TimeSpan.FromDays(7); // 기본값: 현재 시간
+    private List<SeasonResetSchedule> Models { get; set; } = new List<SeasonResetSchedule>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Models = await SeasonService.FetchResetSchedulesAsync();
+            StateHasChanged();
+        }
+    }
+
+
+    private async Task AddNotice()
+    {
+        if (!string.IsNullOrEmpty(Title) && !string.IsNullOrEmpty(Content))
+        {
+            var success = await SeasonService.AddResetScheduleAsync(SeasonId, Title, Content, StartedDate, ResetDate);
+
+            Title = string.Empty;
+            Content = string.Empty;
+            SeasonId = 1;
+
+            if (success)
+            {
+                Models = await SeasonService.FetchResetSchedulesAsync();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteNotice(ulong noticeId)
+    {
+        var success = await SeasonService.DeleteResetScheduleAsync(noticeId);
+
+        if (success)
+        {
+            Models = await SeasonService.FetchResetSchedulesAsync();
+            StateHasChanged();
+        }
+    }
+}

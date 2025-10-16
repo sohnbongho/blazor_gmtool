@@ -1,0 +1,106 @@
+﻿@typeparam TItem
+
+@inject NavigationManager Navigation
+@inject IDataRepository<TItem> DataRepository
+@inject IJSRuntime JS
+@inject ExcelService ExcelService
+
+<div class="modal" tabindex="-1" style="display:@(IsVisible ? "block" : "none")" id="uploadModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">엑셀 업로드</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <InputFile OnChange="HandleFileSelected" />
+                <button class="btn btn-primary" @onclick="HandleFileUpload" disabled="@(!fileSelected||_uploading)">Upload</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }    
+
+    [Parameter]
+    public EventCallback<string> StatusEventCallback { get; set; }
+
+    private bool fileSelected = false;
+    private IBrowserFile? uploadedFile = null;
+    private bool _uploading = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("registerTransitionEnd", "#uploadModal", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public void OnTransitionEnd()
+    {
+        // Transition end logic here
+    }
+
+    private async Task Close()
+    {
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(IsVisible);
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        uploadedFile = e.File;
+        fileSelected = true;        
+    }
+
+    private async Task HandleFileUpload()
+    {
+        if (_uploading)
+            return;
+
+        _uploading = true;
+
+        if (uploadedFile != null)
+        {
+            // Process the uploaded file
+            using var stream = uploadedFile.OpenReadStream();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var data = memoryStream.ToArray();
+
+            await ProcessExcelFile(data);
+
+            // Navigate to another page or show a success message
+            //Navigation.NavigateTo("/");            
+            await Close();
+        }
+        _uploading = false;
+    }
+
+    private async Task ProcessExcelFile(byte[] fileContent)
+    {
+        try
+        {            
+            // Excel파일 DB에 업로드
+            var newRecords = ExcelService.ProcessExcelFile<TItem>(fileContent);
+            await DataRepository.TruncateAndInsertAsync(newRecords);
+
+            await StatusEventCallback.InvokeAsync("successed");
+        }
+        catch(Exception ex)
+        {            
+            await StatusEventCallback.InvokeAsync(ex.Message);
+        }
+        
+    }
+}

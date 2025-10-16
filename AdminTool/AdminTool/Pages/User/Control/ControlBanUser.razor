@@ -1,0 +1,88 @@
+﻿@page "/User/Control/BanUser"
+
+@using AdminTool.Services.User
+@using AdminTool.Repositories.User
+@using Library.DBTables.MySql
+@using Library.DTO
+@using Library.Helper
+
+@inject IUserService UserService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h1>Ban</h1>
+
+<ModalMessageBox Title="Alert" Message="@BanModalMessage" ShowModal="@ShowModal" OnClose="@CloseModal" />
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="searchValue" class="form-label">User Sequence</label>
+            <input type="text" id="searchValue" class="form-control" @bind="SearchValue" placeholder="Enter user sequence" />
+        </div>
+        <div class="col-md-4">
+            <label for="fieldSelect" class="form-label">Ban Period Type</label>
+            <select id="fieldSelect" class="form-select" @bind="SelectedField">
+                <option value="minute">Minutes</option>
+                <option value="day">Days</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="banDate" class="form-label">Ban Duration</label>
+            <input type="number" id="banDate" class="form-control" @bind="BanDates" min="1" placeholder="Enter duration" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <label for="banTitle" class="form-label">Ban Title</label>
+            <input type="text" id="banTitle" class="form-control" @bind="Title" placeholder="Enter ban reason or title" />
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-12 d-flex justify-content-end">
+            <button class="btn btn-danger" @onclick="OnBanUser">Ban User</button>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private string SelectedField { get; set; } = "day";
+    private string SearchValue { get; set; } = string.Empty;    
+    private string Title { get; set; } = string.Empty;
+    private int BanDates { get; set; } = 7; 
+    private bool ShowModal { get; set; } = false; // 모달 표시 여부
+    private string BanModalMessage { get; set; } = string.Empty;
+
+    private async void OnBanUser()
+    {
+        if (!string.IsNullOrEmpty(SelectedField) && !string.IsNullOrEmpty(SearchValue))
+        {            
+            var banExpiryDate = DateTimeHelper.Now;
+            if (SelectedField == "minute")
+            {
+                banExpiryDate += TimeSpan.FromMinutes(BanDates);
+            }
+            else 
+            {
+                banExpiryDate += TimeSpan.FromDays(BanDates);
+            }
+
+            var banned = await UserService.BanUser(Title, SearchValue, banExpiryDate);
+            BanModalMessage = banned ? "Ban succeeded!" : "Ban failed.";
+
+            ShowModal = true; 
+
+        }
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        ShowModal = false; // 모달을 닫음
+
+        StateHasChanged();
+    }
+}

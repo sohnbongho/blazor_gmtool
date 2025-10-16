@@ -1,0 +1,73 @@
+﻿@page "/User/Log/DailyStamp"
+@using AdminTool.Services.User
+@using Library.DBTables.MySql
+@using AdminTool.Models
+@using Library.Helper
+
+@inject IUserService UserService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>데일리 스탬프</h3>
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="fieldSelect" class="form-label">Search by:</label>
+            <select id="fieldSelect" class="form-select" @bind="SelectedField">
+                <option value="userSeq">User Seq</option>
+
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="searchValue" class="form-label">Enter value:</label>
+            <input type="text" id="searchValue" class="form-control" @bind="SearchValue" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="SearchUsers">Search</button>
+        </div>
+        <div class="form-group mb-3">
+            <label for="dateValue" class="form-label">시작일:</label>
+            <input type="datetime-local" id="startDate" class="form-control" @bind="StartDate" />
+        </div>
+        <div class="form-group mb-3">
+            <label for="dateValue" class="form-label">종료일:</label>
+            <input type="datetime-local" id="endDate" class="form-control" @bind="EndDate" />
+        </div>
+    </div>
+</div>
+
+<div>&nbsp;</div>
+@if (Models != null && Models.Any())
+{
+    <TableWithPaging TItem="LogMemberDailyStamp" Data="@Models" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (Models != null)
+{
+    <p class="text-warning">No found.</p>
+}
+
+@code {
+    private string SelectedField { get; set; } = "userSeq";
+    private string SearchValue { get; set; } = string.Empty;
+    private DateTime StartDate { get; set; } = DateTimeHelper.Now.Date - TimeSpan.FromDays(7);
+    private DateTime EndDate { get; set; } = DateTimeHelper.Now.Date + TimeSpan.FromDays(1);
+    private List<LogMemberDailyStamp> Models { get; set; } = null!;
+
+    private async void SearchUsers()
+    {
+        if (Models == null)
+        {
+            Models = new();
+        }
+        Models.Clear();
+
+        if (!string.IsNullOrEmpty(SelectedField) && !string.IsNullOrEmpty(SearchValue))
+        {
+            Models = await UserService.FetchDailyStampLogsAsync(SearchValue, StartDate, EndDate);
+        }
+
+        StateHasChanged();
+    }
+}

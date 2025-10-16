@@ -1,0 +1,364 @@
+﻿@page "/User/Detail/Search"
+
+@using AdminTool.Models
+@using AdminTool.Services.User
+@using AdminTool.Repositories.User
+@using Library.DBTables.MySql
+@using Library.DTO
+@using Library.Data.Enums
+@using Library.Helper
+
+@inject IUserService UserService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h1>User Search</h1>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="fieldSelect" class="form-label">Search by:</label>
+            <select id="fieldSelect" class="form-select" @bind="SelectedField">
+                <option value="userName">User Name</option>
+                <option value="userSeq">User Seq</option>
+                <option value="charSeq">Char Seq</option>                
+                <option value="userId">User ID</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="searchValue" class="form-label">Enter value:</label>
+            <input type="text" id="searchValue" class="form-control" @bind="SearchValue" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="SearchUsers">Search</button>
+        </div>
+    </div>
+</div>
+@if (FilteredUsers != null && FilteredUsers.Any())
+{
+    <h3>유저 정보</h3>
+    <TableWithPaging TItem="UserMember" Data="@FilteredUsers" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (FilteredUsers != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+<div>&nbsp;</div>
+@if (FilteredChars != null && FilteredChars.Any())
+{
+    <h3>캐릭터 정보</h3>
+
+    <table class="excel">
+        <thead>
+            <tr>                    
+                <th>Char Seq</th>
+                <th>User ID</th>
+                <th>User Name</th>
+
+                <th>CreateDate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in FilteredChars)
+            {
+                <tr>                        
+                    <td>@user.char_seq.ToString()</td>
+                    <td>@user.user_id</td>
+                    <td>@user.nickname</td>                    
+
+                    <td>@user.created_date</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (FilteredUsers != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+<div>&nbsp;</div>
+@if (Currencys != null && Currencys.Any())
+{
+    <h3>보유 재화</h3>
+
+    <table class="excel">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>UserSeq</th>
+                <th>CharSeq</th>
+                <th>CurrencyType</th>
+                <th>Amount</th>
+
+                <th>UpdateDate</th>
+                <th>CreateDate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var currency in Currencys)
+            {
+                <tr>
+                    <td>@currency.id.ToString()</td>
+                    <td>@currency.user_seq.ToString()</td>
+                    <td>@currency.char_seq.ToString()</td>
+
+                    <td>@ConvertCurrencyType(@currency.currency_type)</td>
+                    <td>@currency.amount.ToString()</td>
+
+                    <td>@currency.updated_date.ToString()</td>
+                    <td>@currency.created_date.ToString()</td>
+
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (Currencys != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+<div>&nbsp;</div>
+@if (GameModeExps != null && GameModeExps.Any())
+{
+    <h3>게임모드 경험치</h3>
+
+    <table class="excel">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>UserSeq</th>
+                <th>CharSeq</th>
+                <th>GameModeExpType</th>
+                <th>Level</th>
+                <th>Exp</th>
+
+                <th>UpdateDate</th>
+                <th>CreateDate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exp in GameModeExps)
+            {
+                <tr>
+                    <td>@exp.id.ToString()</td>
+                    <td>@exp.user_seq.ToString()</td>
+                    <td>@exp.char_seq.ToString()</td>
+
+                    <td>@ConvertGameModeExpType(@exp.game_mode_id)</td>
+                    <td>@exp.level.ToString()</td>
+                    <td>@exp.exp.ToString()</td>
+
+                    <td>@exp.updated_date.ToString()</td>
+                    <td>@exp.created_date.ToString()</td>
+
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (GameModeExps != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+<div>&nbsp;</div>
+@if (LogMembers != null && LogMembers.Any())
+{
+    <h3>유저 로그</h3>
+
+    <table class="excel">
+        <thead>
+            <tr>                    
+                <th>UserSeq</th>                
+                <th>Total Login Count</th>
+
+                <th>UpdateDate</th>
+                <th>CreateDate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in LogMembers)
+            {
+                <tr>                        
+                    <td>@user.user_seq.ToString()</td>                    
+                    <td>@user.total_login_count.ToString()</td>                    
+
+                    <td>@user.updated_date</td>
+                    <td>@user.created_date</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (LogMembers != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+<div>&nbsp;</div>
+@if (LogCurrencys != null && LogCurrencys.Any())
+{
+    <h3>유저 재화 사용 로그</h3>
+
+    <table class="excel">
+        <thead>
+            <tr>
+                <th>UserSeq</th>
+                <th>currency_type</th>
+                <th>spent_amount</th>
+
+                <th>UpdateDate</th>
+                <th>CreateDate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in LogCurrencys)
+            {
+                <tr>
+                    <td>@user.user_seq.ToString()</td>
+                    <td>@ConvertCurrencyType(@user.currency_type)</td>
+                    <td>@user.spent_amount</td>
+
+                    <td>@user.updated_date</td>
+                    <td>@user.created_date</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (LogCurrencys != null)
+{
+    <p class="text-warning">No users found.</p>
+}
+
+
+
+
+@code {
+    private string SelectedField { get; set; } = "userSeq";
+    private string SearchValue { get; set; } = string.Empty;
+    private List<UserMember>? FilteredUsers { get; set; } = null;
+    private List<TblCharacter>? FilteredChars { get; set; } = null;
+    private List<TblLogMember>? LogMembers { get; set; } = null;
+    private List<TblInventoryCurrency>? Currencys { get; set; } = null;
+    private List<TblInventoryGamemodeExp>? GameModeExps { get; set; } = null;
+    private List<TblLogCurrency>? LogCurrencys { get; set; } = null;
+
+    private async void SearchUsers()
+    {
+        if (FilteredUsers == null)
+        {
+            FilteredUsers = new();
+        }
+
+        if (FilteredChars == null)
+        {
+            FilteredChars = new();
+        }
+
+        if (LogMembers == null)
+        {
+            LogMembers = new();
+        }
+        if (Currencys == null)
+        {
+            Currencys = new();
+        }
+        if (GameModeExps == null)
+        {
+            GameModeExps = new();
+        }        
+        if (LogCurrencys == null)
+        {
+            LogCurrencys = new();
+        }
+
+        FilteredUsers.Clear();
+        FilteredChars.Clear();
+        LogMembers.Clear();
+        Currencys.Clear();
+        GameModeExps.Clear();
+        LogCurrencys.Clear();
+
+        if (!string.IsNullOrEmpty(SelectedField) && !string.IsNullOrEmpty(SearchValue))
+        {
+            var users = new List<(TblMember, TblCharacter, TblLogMember)>();
+
+            switch (SelectedField)
+            {
+                case "userSeq":
+                    users = await UserService.FetchUserByUserSeq(SearchValue);
+                    break;
+                case "charSeq":
+                    users = await UserService.FetchUserByCharSeq(SearchValue);
+                    break;
+                case "userName":
+                    users = await UserService.FetchUserByUserName(SearchValue);
+                    break;
+                case "userId":
+                    users = await UserService.FetchUserByUserId(SearchValue);
+                    break;
+                default:                    
+                    break;
+            }            
+
+            foreach (var user in users)
+            {
+                var(tblMember, tblChars, tblLogMember) = user;
+
+                FilteredUsers.Add(new UserMember
+                {
+                    UserSeq = tblMember.user_seq,
+                    CharSeq = tblMember.char_seq,
+                    LoginType = ConvertHelper.ToEnum <LoginType>(tblMember.login_type),
+                    UserId = tblMember.user_id,
+                    SessionGuid = tblMember.session_guid,
+                    UserHandle = tblMember.user_handle,
+                    FirebaseUid = tblMember.firebase_uid,
+                    ImageUrl = tblMember.image_url,
+                    BackgroundImageUrl = tblMember.background_image_url,
+                    Profile = tblMember.profile_json_data,
+                    BanExpiryDate = tblMember.ban_expiry_date,
+                    UserHandleUpdatedDate = tblMember.user_handle_updated_date,
+                    DeactiveDate = tblMember.deactive_date,
+                    UpdatedDate = tblMember.updated_date,
+                    CreatedDate = tblMember.created_date,                    
+                });
+
+                FilteredChars.Add(tblChars);
+                LogMembers.Add(tblLogMember);
+
+                var userSeqStr = tblMember.user_seq.ToString();
+                var currencys = await UserService.FetchInventoryCurrencys(userSeqStr);
+                Currencys.AddRange(currencys);
+                
+                var exps = await UserService.FetchGameModeExps(userSeqStr);
+                GameModeExps.AddRange(exps);
+                
+                var logCurrencys = await UserService.FetchLogCurrencys(userSeqStr);
+                LogCurrencys.AddRange(logCurrencys);
+            }
+
+        }
+        StateHasChanged();
+    }    
+
+    private string ConvertCurrencyType(short currencyValue)
+    {
+        var currencyType = ConvertHelper.ToEnum<CurrencyType>(currencyValue);
+        return currencyType.ToString();
+    }
+    
+    private string ConvertGameModeExpType(int currencyValue)
+    {
+        var type = ConvertHelper.ToEnum<GameModeExpType>(currencyValue);
+        return type.ToString();
+    }
+}

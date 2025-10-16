@@ -1,0 +1,63 @@
+﻿@page "/dashboard"
+@using System
+@using AdminTool.Services.Login
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Authorization
+@using AdminTool.Services.Account
+@inject ITokenService TokenService
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@inject CustomAuthStateProvider AuthStateProvider
+@inject IAccountService AccountService
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Home</PageTitle>
+
+@if (false == string.IsNullOrEmpty(randomImageUrl))
+{
+    <div class="centered-image-container">
+        <img src="@randomImageUrl" alt="Random Landscape Image" width="1024" height="768" />
+    </div>
+}
+
+
+@code {
+    private string randomImageUrl = string.Empty;
+
+    private void SetRandomImage()
+    {
+        var random = new Random();
+        var images = new List<string>
+        {
+            "https://file.mk.co.kr/meet/neds/2010/12/image_readtop_2010_694361_1292378936351566.jpg",
+            "https://file.bodnara.co.kr/logo/insidelogo.php?image=%2Fhttp%3A%2F%2Ffile.bodnara.co.kr%2Fwebedit%2Fnews%2F2007%2F1216955451-a_01.jpg",
+        };
+
+        randomImageUrl = images[random.Next(images.Count)];
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var authenticationState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            var identity = authenticationState?.User?.Identity ?? null;
+            if (identity != null)
+            {
+                if (!identity.IsAuthenticated)
+                {
+                    Navigation.NavigateTo("/login", true);
+                }
+                else
+                {
+                    SetRandomImage();
+                    StateHasChanged();
+                }                
+            }
+            
+        }
+        
+    }
+
+}

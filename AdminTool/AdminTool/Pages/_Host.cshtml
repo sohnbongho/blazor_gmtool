@@ -1,0 +1,491 @@
+﻿@page "/"
+@namespace AdminTool.Pages
+@using Library.Helper
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AdminApp</title>
+    <base href="~/" />
+
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="~/templates/dashboard/css/styles.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
+    <link href="css/site.css" rel="stylesheet" />
+
+
+</head>
+
+<body class="sb-nav-fixed">
+
+    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">AdminApp</a><button class="btn btn-link btn-sm order-1 order-lg-0" id="sidebarToggle" href="#">
+            <i class="fas fa-bars"></i>
+        </button><!-- Navbar Search-->
+        <form class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
+            <div class="input-group">
+                <input class="form-control" type="text" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2" />
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="button"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </form>
+        <!-- Navbar-->
+        <ul class="navbar-nav ml-auto ml-md-0">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="userDropdown" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                    @* <a class="dropdown-item" href="#">Settings</a><a class="dropdown-item" href="#">Activity Log</a>
+                    <div class="dropdown-divider"></div> *@
+                    <a class="dropdown-item" href="/login">Logout</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_nav">
+            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <div class="sb-sidenav-menu">
+                    <div class="nav">
+                        @* 메인 화면 *@
+                        <div class="sb-sidenav-menu-heading">Core</div>
+                        <a class="nav-link" href="/Dashboard" id="lnkDashboard">
+                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            Dashboard
+                        </a>
+                        <a class="nav-link" href="/ChatRoom" id="lnkDashboard">
+                            <div class="sb-nav-link-icon"><i class="fas fa-comments"></i></div>
+                            ChatRoom
+                        </a>
+                        <a class="nav-link" href="/AiChatBot" id="lnkDashboard">
+                            <div class="sb-nav-link-icon"><i class="fas fa-comments"></i></div>
+                            AiChatBot
+                        </a>
+                        @* end 메인 화면 *@
+                        @* Service *@
+                        <div class="sb-sidenav-menu-heading">Service</div>
+                        @* Notice *@
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServiceNotice" aria-expanded="false" aria-controls="collapseServiceNotice">
+                            <div class="sb-nav-link-icon"><i class="fas fa-comments"></i></div>
+                            Notice&System
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseServiceNotice" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/Service/Notice/PersistentNotice">팝업 공지</a>
+                                <a class="nav-link" href="/Service/Notice/FeatureBlockControl">콘텐츠 블럭</a>
+                                <a class="nav-link" href="/Service/Notice/NoticeBoard">공지 게시판</a>
+                            </nav>
+                        </div>
+                        @* end Notice *@
+                        @* Device *@
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServiceDevice" aria-expanded="false" aria-controls="collapseServiceDevice">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Device
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseServiceDevice" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/Service/Device/BlockDevice">Device 블럭 </a>
+                            </nav>
+                        </div>
+                        @* end Notice *@
+                        @* Log *@
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServiceLog" aria-expanded="false" aria-controls="collapseServiceLog">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Log
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseServiceLog" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/User/Service/GameStatusTable">게임현황표</a>
+                                <a class="nav-link" href="/User/Service/CurrencyChagedLog">서버내 재화 변경</a>
+                                <a class="nav-link" href="/User/Service/ItemSellRankLog">아이템 판매순위</a>
+                                <a class="nav-link" href="/User/Service/ItemSellLog">아이템 판매 수</a>
+                            </nav>
+                        </div>
+                        @* end Log*@
+                        @* 아이템 지급 *@
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServiceGiveItem" aria-expanded="false" aria-controls="collapseServiceGiveItem">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            GiveItem
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseServiceGiveItem" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/Service/GiveItem/Accessory">액세사리</a>
+                                <a class="nav-link" href="/Service/GiveItem/LogGiveItem">지급 로그</a>
+                            </nav>
+                        </div>
+                        @* end 아이템 지급 *@
+
+                        @* 시즌 관련 *@
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServiceSeason" aria-expanded="false" aria-controls="collapseServiceSeason">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Season
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseServiceSeason" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/Service/Season/ResetSchedule">리셋 일정</a>
+                            </nav>
+                        </div>
+                        @* end 시즌 관련 *@
+
+                        @* 이벤트 관련 *@
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServiceEvent" aria-expanded="false" aria-controls="collapseServiceEvent">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Event
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseServiceEvent" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/Service/Event/EventSchedule">이벤트 리스트</a>
+                            </nav>
+                        </div>
+                        @* end 시즌 관련 *@
+
+                        @* 랭크 관련 *@
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServiceRank" aria-expanded="false" aria-controls="collapseServiceRank">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Rank
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseServiceRank" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/Service/Rank/GameMode">게임모드 랭크</a>
+                            </nav>
+                        </div>
+                        @* end 랭크 관련 *@
+
+                        @* 번역 *@
+                        @* <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServiceTranslate" aria-expanded="false" aria-controls="collapseServiceTranslate">
+                        <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                        Translation
+                        <div class="sb-sidenav-collapse-arrow">
+                        <i class="fas fa-angle-down"></i>
+                        </div>
+                        </a>
+                        <div class="collapse" id="collapseServiceTranslate" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                        <nav class="sb-sidenav-menu-nested nav">
+                        <a class="nav-link" href="/Service/Translation/translate">번역</a>
+                        </nav>
+                        </div> *@
+                        @* end 번역 *@
+
+                        @* end Service *@
+
+                        @* User *@
+                        <div class="sb-sidenav-menu-heading">User</div>
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUserInformation" aria-expanded="false" aria-controls="collapseUserInformation">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Infomation
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseUserInformation" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/User/Detail/Search">유저 정보</a>
+                                <a class="nav-link" href="/User/Detail/Inventory">Inventory</a>
+                                <a class="nav-link" href="/User/Detail/Mail">받은 메일</a>
+                            </nav>
+                        </div>
+                        @* <div class="collapse" id="collapseUser" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                        <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUserDeatils" aria-expanded="false" aria-controls="collapseUserDeatils">
+                        <i class="fas fa-users"></i>
+                        User
+                        <div class="sb-sidenav-collapse-arrow">
+                        <i class="fas fa-angle-down"></i>
+                        </div>
+                        </a>
+                        <div class="collapse" id="collapseUserDeatils" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                        <nav class="sb-sidenav-menu-nested nav">
+                        <a class="nav-link" href="/User/Detail/Search">유저 정보</a>
+                        <a class="nav-link" href="/User/Detail/Inventory">Inventory</a>
+                        <a class="nav-link" href="/User/Detail/SeasonInventory">Season Inventory</a>
+                        <a class="nav-link" href="/User/Detail/DeactiveAccount">비활성 계정</a>
+                        </nav>
+                        </div>
+                        </nav>
+                        </div> *@
+                        @* end Infomation *@
+                        @* 로그 *@
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUserLog" aria-expanded="false" aria-controls="collapseUserLog">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Log
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseUserLog" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/User/Log/DailyStamp">데일리 스탬프</a>
+                                <a class="nav-link" href="/User/Log/AwardItem">아이템, 재화 획득로그</a>
+                                <a class="nav-link" href="/User/Log/PurchaseLog">구매 로그</a>
+                                <a class="nav-link" href="/User/Log/InGamePurcaseReceipt">인게임 유료구매 영수증</a>
+                                <a class="nav-link" href="/User/Log/Login">로그인 로그</a>
+                                <a class="nav-link" href="/User/Log/GamePlay">게임 플레이</a>
+                                <a class="nav-link" href="/User/Log/PlayTime">게임 플레이 시간</a>
+                            </nav>
+                        </div>
+                        @* end 로그 *@
+
+                        @* 유저_밴 *@
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUserBan" aria-expanded="false" aria-controls="collapseUserBan">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Ban
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseUserBan" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="/User/Control/BanUser">유저밴</a>
+                                <a class="nav-link" href="/User/Control/ArticleCommentBan">게시글 댓글 밴</a>
+                                <a class="nav-link" href="/User/Control/UserBanHistory">유저 밴 히스토리</a>
+                            </nav>
+                        </div>
+                        @* end 유저_밴 *@
+
+
+
+                        @* 기획팀에서 필요한 항목 *@
+                        <div class="sb-sidenav-menu-heading">기획</div>
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDesignData" aria-expanded="false" aria-controls="collapseDesignData">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Data
+                            <div class="sb-sidenav-collapse-arrow">
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                        </a>
+                        <div class="collapse" id="collapseDesignData" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
+                                @* System*@
+                                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDesignDataService" aria-expanded="false" aria-controls="collapseDesignDataService">
+                                    Service
+                                    <div class="sb-sidenav-collapse-arrow">
+                                        <i class="fas fa-angle-down"></i>
+                                    </div>
+                                </a>
+                                <div class="collapse" id="collapseDesignDataService" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                                    <nav class="sb-sidenav-menu-nested nav">
+                                        <a class="nav-link" href="/Design/Service/Const">Const</a>
+                                        <a class="nav-link" href="/Design/Service/ZoneObjectInfo">ZoneObjectInfo</a>
+                                        <a class="nav-link" href="/Design/Service/DailyStamp">DailyStamp</a>
+                                        <a class="nav-link" href="/Design/Service/GameModeExp">GameModeExp</a>
+                                        <a class="nav-link" href="/Design/Service/GameModeExpType">GameModeExpType</a>
+                                    </nav>
+                                </div>
+                                @* Items *@
+                                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDesignDataItems" aria-expanded="false" aria-controls="collapseDesignDataItems">
+                                    Items
+                                    <div class="sb-sidenav-collapse-arrow">
+                                        <i class="fas fa-angle-down"></i>
+                                    </div>
+                                </a>
+                                <div class="collapse" id="collapseDesignDataItems" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                                    <nav class="sb-sidenav-menu-nested nav">
+                                        <a class="nav-link" href="/Design/Items/Currency">Currency</a>
+                                        <a class="nav-link" href="/Design/Items/Accessories">Accessories</a>
+                                        <a class="nav-link" href="/Design/Items/Characters">Characters</a>
+                                        <a class="nav-link" href="/Design/Items/Clothings">Clothings</a>
+                                        <a class="nav-link" href="/Design/Items/ColorPalettes">ColorPalettes</a>
+                                        <a class="nav-link" href="/Design/Items/DiggingWarrior"> 삽투사</a>
+                                        <a class="nav-link" href="/Design/Items/UnequippedSetItem"> UnEquippedSetItem</a>
+                                        <a class="nav-link" href="/Design/Items/SlotToItemType"> SlotToItemType</a>
+                                        <a class="nav-link" href="/Design/Items/SpaceBg"> SpaceBg</a>
+                                        <a class="nav-link" href="/Design/Items/SpaceProp"> SpaceProp</a>
+                                        <a class="nav-link" href="/Design/Items/Package"> Package</a>
+                                        <a class="nav-link" href="/Design/Items/ItemSale"> ItemSale</a>
+                                    </nav>
+                                </div>
+                                @* Shop *@
+                                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDesignDataShop" aria-expanded="false" aria-controls="collapseDesignDataShop">
+                                    Shop
+                                    <div class="sb-sidenav-collapse-arrow">
+                                        <i class="fas fa-angle-down"></i>
+                                    </div>
+                                </a>
+                                <div class="collapse" id="collapseDesignDataShop" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                                    <nav class="sb-sidenav-menu-nested nav">
+                                        <a class="nav-link" href="/Design/Shop/InAppCurrency">Currency</a>
+                                        <a class="nav-link" href="/Design/Shop/Package">Package</a>
+
+                                    </nav>
+                                </div>
+                                @* GameMode *@
+                                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDesignDataGameMode" aria-expanded="false" aria-controls="collapseDesignDataGameMode">
+                                    GameMode
+                                    <div class="sb-sidenav-collapse-arrow">
+                                        <i class="fas fa-angle-down"></i>
+                                    </div>
+                                </a>
+                                <div class="collapse" id="collapseDesignDataGameMode" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                                    <nav class="sb-sidenav-menu-nested nav">
+                                        <a class="nav-link" href="/Design/GameMode/MiniGame">MiniGame</a>
+                                        <a class="nav-link" href="/Design/GameMode/MallangCat">MallangCat</a>
+
+                                    </nav>
+                                </div>
+                            </nav>
+                        </div>
+                        @* end 기획팀에서 필요한 항목 *@
+
+                        @* Ui테스트 화면*@
+                        @* <div class="sb-sidenav-menu-heading">UiTest</div>
+                        <a class="nav-link" href="/Uitest/TableTest" id="lnkDashboard">
+                        <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        Table
+                        </a> *@
+                        @* end Ui테스트 화면*@
+                        @* <a class="nav-link" href="/Counter">
+                        <div class="sb-nav-link-icon"><i class="fas fa-angle-down"></i></div>
+                        Counter
+                        </a>*@
+                        @* <div class="sb-sidenav-menu-heading">Interface</div>
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
+                        <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                        Layouts
+                        <div class="sb-sidenav-collapse-arrow">
+                        <i class="fas fa-angle-down"></i>
+                        </div>
+                        </a>
+                        <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-parent="#sidenavAccordion">
+                        <nav class="sb-sidenav-menu-nested nav"><a class="nav-link" href="layout-static.html">Static Navigation</a><a class="nav-link" href="layout-sidenav-light.html">Light Sidenav</a></nav>
+                        </div>
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
+                        <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                        Pages
+                        <div class="sb-sidenav-collapse-arrow">
+                        <i class="fas fa-angle-down"></i>
+                        </div>
+                        </a> *@
+                        @* <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
+                        <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#pagesCollapseAuth" aria-expanded="false" aria-controls="pagesCollapseAuth">
+                        Authentication
+                        <div class="sb-sidenav-collapse-arrow">
+                        <i class="fas fa-angle-down"></i>
+                        </div>
+                        </a>
+                        <div class="collapse" id="pagesCollapseAuth" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                        <nav class="sb-sidenav-menu-nested nav"><a class="nav-link" href="login.html">Login</a><a class="nav-link" href="register.html">Register</a><a class="nav-link" href="password.html">Forgot Password</a></nav>
+                        </div>
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#pagesCollapseError" aria-expanded="false" aria-controls="pagesCollapseError">
+                        Error
+                        <div class="sb-sidenav-collapse-arrow">
+                        <i class="fas fa-angle-down"></i>
+                        </div>
+                        </a>
+                        <div class="collapse" id="pagesCollapseError" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
+                        <nav class="sb-sidenav-menu-nested nav"><a class="nav-link" href="401.html">401 Page</a><a class="nav-link" href="404.html">404 Page</a><a class="nav-link" href="500.html">500 Page</a></nav>
+                        </div>
+                        </nav>
+                        </div> *@
+                        @* <div class="sb-sidenav-menu-heading">Addons</div>
+                        <a class="nav-link" href="charts.html">
+                        <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                        Charts
+                        </a><a class="nav-link" href="tables.html">
+                        <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                        Tables
+                        </a> *@
+                    </div>
+                </div>
+                @* <div class="sb-sidenav-footer">
+                <div class="small">Logged in as:</div>
+                Start Bootstrap
+                </div> *@
+                <div class="sb-sidenav-footer">
+                    <div class="small">Logged</div>
+                </div>
+            </nav>
+        </div>
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid">
+                    <app>
+                        <div>
+                            <component type="typeof(App)" render-mode="ServerPrerendered" />
+                        </div>
+
+                    </app>
+                </div>
+            </main>
+            <footer class="py-4 bg-light mt-auto">
+                <div class="container-fluid">
+                    <div class="d-flex align-items-center justify-content-between small">
+                        <div class="text-muted">Copyright &copy; Your Website @DateTimeHelper.Now </div>
+                        <div>
+                            <a href="#">Privacy Policy</a>
+                            &middot;
+                            <a href="#">Terms &amp; Conditions</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+    <script src="js/download.js"></script>
+    <script src="js/site.js"></script>
+    <script src="js/scripts.js"></script>
+    <script src="js/localStorage.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="/templates/dashboard/js/scripts.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
+    <script src="/templates/dashboard/assets/demo/datatables-demo.js"></script>
+
+    <script>
+        // 사이드 메뉴 선택시 해당 메뉴를 active 상태로 변경
+        $(function () {
+            $("#layoutSidenav_nav .sb-sidenav a.nav-link").on("click", function (e) {
+                $(".nav-link").removeClass("active");
+                $(this).addClass("active");
+            });
+            $(".navbar-brand").on("click", function (e) {
+                $(".nav-link").removeClass("active");
+                $("#lnkDashboard").addClass("active");
+            });
+        });
+    </script>
+
+</body>

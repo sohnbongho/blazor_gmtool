@@ -1,0 +1,126 @@
+﻿@page "/ChatRoom"
+
+@using AdminTool.Hubs
+@using AdminTool.Services.Login
+@using Microsoft.AspNetCore.Http.Connections
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+@inject ITokenService TokenService
+@inject ILocalStorageService LocalStorage
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<PageTitle>Home</PageTitle>
+
+<div>&nbsp;</div>
+<h3>Chat Room </h3>
+
+<div>&nbsp;</div>
+<div class="form-group">
+    <label>
+        Message:
+        <input @bind="messageInput" size="50" />
+    </label>
+</div>
+<button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+
+<hr>
+
+<ul id="messagesList">
+    @foreach (var message in messages)
+    {
+        <li>@message</li>
+    }
+</ul>
+
+@code {
+    private HubConnection? hubConnection;
+    private List<string> messages = new List<string>();    
+    private string? messageInput;
+    private string _userName = string.Empty;
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var tokenStr = await LocalStorage.GetItemAsync("authToken");
+                var token = TokenService.ReadToken(tokenStr);
+                var nameClaim = token.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
+
+                _userName = nameClaim?.Value ?? string.Empty;
+
+                hubConnection = new HubConnectionBuilder()
+                    .WithUrl(Navigation.ToAbsoluteUri("/chathub"), options =>
+                    {
+                        options.AccessTokenProvider = () => Task.FromResult<string?>(tokenStr);
+                        options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets;
+                    })
+                    .Build();
+
+                // 최소 설정 가능한 값 5초
+                hubConnection.KeepAliveInterval = TimeSpan.FromSeconds(5);
+                hubConnection.ServerTimeout = TimeSpan.FromSeconds(30);
+
+                hubConnection.On<ChatHubMessage>("MessageToClient", (message) =>
+                {
+                    var chat = $"{message.UserId}: {message.Message}";
+
+                    messages.Add(chat);
+                    InvokeAsync(StateHasChanged);
+                });
+
+                hubConnection.On<string>("Enter", (message) =>
+                {
+                    messages.Add(message);
+                    InvokeAsync(StateHasChanged);
+                });
+
+                hubConnection.On<string>("Exit", (message) =>
+                {
+                    messages.Add(message);
+                    InvokeAsync(StateHasChanged);
+                });
+
+                await hubConnection.StartAsync();
+            }
+            catch(Exception)
+            {
+                Navigation.NavigateTo("/login", true);
+            }            
+        }
+    }   
+
+
+    private async Task Send()
+    {
+        if (hubConnection is not null && !string.IsNullOrEmpty(messageInput))
+        {
+            var userName = _userName;
+            var message = new ChatHubMessage
+            {
+                UserId = userName,
+                Message = messageInput,
+            };            
+            await hubConnection.SendAsync("MessageToServer", message);
+
+            messageInput = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    public bool IsConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}

@@ -1,0 +1,59 @@
+﻿@page "/User/Service/ItemSellLog"
+
+@using AdminTool.Services.User
+@using Library.DBTables.MySql
+@using AdminTool.Models
+@using Library.Helper
+
+@inject IUserService UserService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>아이템 판매 수</h3>
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="form-group mb-3">
+            <label for="itemIndex" class="form-label">Item Index:</label>
+            <input type="number" id="itemIndex" class="form-control" @bind="ItemIndex" placeholder="Enter Item Index" />
+        </div>
+        <div class="form-group mb-3">
+            <label for="startDate" class="form-label">시작일:</label>
+            <input type="datetime-local" id="startDate" class="form-control" @bind="StartDate" />
+        </div>
+        <div class="form-group mb-3">
+            <label for="endDate" class="form-label">종료일:</label>
+            <input type="datetime-local" id="endDate" class="form-control" @bind="EndDate" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="OnSearch">Search</button>
+        </div>
+    </div>
+</div>
+
+<div>&nbsp;</div>
+@if (Models != null && Models.Any())
+{
+    <TableWithPaging TItem="LogPurchaseRank" Data="@Models" RowsPerPage=20
+                     VisibleExcelUploadedButton=false />
+}
+else if (Models != null)
+{
+    <p class="text-warning">No items found.</p>
+}
+
+@code {
+    private DateTime StartDate { get; set; } = DateTimeHelper.Now.Date - TimeSpan.FromDays(7);
+    private DateTime EndDate { get; set; } = DateTimeHelper.Now.Date + TimeSpan.FromDays(1);
+    private List<LogPurchaseRank> Models { get; set; } = null!;
+    private int ItemIndex { get; set; }
+
+    private async void OnSearch()
+    {
+        if (ItemIndex > 0)
+        {
+            Models = await UserService.FetchSellItemCountAsync(ItemIndex, StartDate, EndDate);
+            StateHasChanged();
+        }        
+    }
+}

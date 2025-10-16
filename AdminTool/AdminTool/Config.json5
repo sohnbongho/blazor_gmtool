@@ -1,0 +1,41 @@
+﻿// Lobby C#에서는 일반적으로 파스칼 표기법
+
+{
+  "world": {
+    //tbl_server_list 정보에서 server_id로 읽어온다.
+    "serverId": 1000
+  },
+  "swagger": {
+    "port": 5102,
+    "https": false
+  },
+  "remote": {
+    "encrypt": true
+  },
+  "db": {
+    "mySql": {
+      "connectString": {
+        // 게임 db를 읽어온다.
+        "system": "host=192.168.10.211;port=3306;userid=dance;password=Crazy1!crazy;database=danceparty;Pooling=true;Min Pool Size=5;Max Pool Size=100;",
+        //"design": "host=52.231.109.8;port=3306;userid=dance;password=Crazy1!crazy;database=danceparty;Pooling=true;Min Pool Size=5;Max Pool Size=100;",
+        "design": "host=192.168.10.211;port=3306;userid=dance;password=Crazy1!crazy;database=danceparty;Pooling=true;Min Pool Size=5;Max Pool Size=100;",
+        //"gameDb": "host=52.231.109.8;port=3306;userid=dance;password=Crazy1!crazy;database=danceparty;Pooling=true;Min Pool Size=5;Max Pool Size=100;",
+        "gameDb": "host=192.168.10.211;port=3306;userid=dance;password=Crazy1!crazy;database=danceparty;Pooling=true;Min Pool Size=5;Max Pool Size=100;",
+        "gmtool": "host=192.168.10.210;port=3306;userid=dance;password=Crazy1!crazy;database=danceparty;Pooling=true;Min Pool Size=5;Max Pool Size=100;"
+      },
+      "poolCount": 5
+    },
+    "redis": {
+      "connectString": "192.168.10.45:6379,allowAdmin=true,password=...,syncTimeout=10000,connectTimeout=10000",
+      "poolCount": 5
+    },
+    "mongodb": {
+      "connectString": "mongodb://localhost:27017",
+      "poolCount": 5
+    }
+  },
+  "nats": {
+    "connectString": "nats://192.168.10.45:4222",
+    "poolCount": 5
+  }
+}

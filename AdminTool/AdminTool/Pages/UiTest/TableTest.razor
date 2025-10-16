@@ -1,0 +1,66 @@
+﻿@page "/Uitest/TableTest"
+
+@attribute [Authorize]
+<CheckedLogin />
+
+@using System.Collections.Generic
+@using System.Threading.Tasks
+
+@inject ExcelService ExcelService
+@inject IJSRuntime JS
+
+<PageTitle>UITest</PageTitle>
+
+<h1>UITest</h1>
+@if (false == string.IsNullOrEmpty(_errorMessage))
+{
+    <h1 class="text-danger">@_errorMessage</h1>
+}
+@if (_models != null)
+{
+    <TableWithPaging TItem="MyDataItem" Data="@_models" RowsPerPage=15
+                     ExcelModalVisibleChanged="@(EventCallback.Factory.Create<bool>(this, OnModalVisibilityChanged))" />    
+}
+
+@code {
+    private List<MyDataItem> _models = null!;
+    private List<string> columns = new List<string> { "ID", "Name", "Value" };    
+    private bool _excelUploadModalVisible = false;
+    private string _errorMessage = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _models = GenerateData(250);
+    }
+
+    private List<MyDataItem> GenerateData(int count)
+    {
+        var result = new List<MyDataItem>();
+        for (int i = 1; i <= count; i++)
+        {
+            result.Add(new MyDataItem { Id = i, Name = $"Name {i}", Value = i * 10 });
+        }
+        return result;
+    }
+    
+    private async Task OnModalVisibilityChanged(bool isVisible)
+    {
+        _excelUploadModalVisible = isVisible;
+        if (!isVisible)
+        {
+            await JS.InvokeVoidAsync("hideModal", ".modal");
+            StateHasChanged();
+        }
+    }
+    private void OnErrorEventCallback(string message)
+    {        
+        StateHasChanged();
+    }
+    public class MyDataItem
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int Value { get; set; }
+    }
+}
+

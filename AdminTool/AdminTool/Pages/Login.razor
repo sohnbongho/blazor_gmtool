@@ -1,0 +1,187 @@
+﻿@page "/login"
+@using AdminTool.Services.Login
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Authorization
+@using AdminTool.Services.Account
+@inject ITokenService TokenService
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@inject CustomAuthStateProvider AuthStateProvider
+@inject IAccountService AccountService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Login</h3>
+
+@if (_logined == false)
+{
+    <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Username:</label>
+            <InputText @bind-Value="loginModel.Username" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Password:</label>
+            <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </EditForm>
+}
+else
+{
+    <button @onclick="LogOut" class="btn btn-primary">LogOut</button>    
+}
+
+<div class="form-group mt-3">
+    <button @onclick="NavigateToRegister" class="btn btn-secondary">Create Account</button>
+</div>
+
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+    var statusMessageClass = _statusMessage.StartsWith("success") ? "alert-success" : "alert-danger";
+    <div class="alert @statusMessageClass alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        @_statusMessage
+    </div>
+}
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+    private string _statusMessage = string.Empty;
+    private bool _logined = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var logined = false;
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var identity = authenticationState?.User?.Identity ?? null;
+            if (identity != null)
+            {
+                logined = identity.IsAuthenticated;                
+            }
+            _logined = logined;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        var logined = await AccountService.ValidateLoginAsync(loginModel.Username, loginModel.Password);
+        if (logined) // 실제 인증 로직 사용
+        {
+            _logined = logined;
+
+            var token = TokenService.GenerateToken(loginModel.Username, "normal");
+            await LocalStorage.SetItemAsync("authToken", token);
+            AuthStateProvider.NotifyUserAuthentication(token);
+
+            Navigation.NavigateTo("/");
+            _statusMessage = "successed: 로그인 성공!";            
+        }
+        else
+        {
+            // 로그인 실패 처리
+            _statusMessage = "로그인에 실패했습니다.";
+        }
+    }
+    private async Task LogOut()
+    {
+        await LocalStorage.RemoveItemAsync("authToken");
+        AuthStateProvider.NotifyUserLogout();
+        _logined = false;
+
+        StateHasChanged();
+    }
+
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
+    }
+
+    public class LoginModel
+    {
+        [Required]
+        public string Username { get; set; } = string.Empty;
+
+        [Required]
+        public string Password { get; set; } = string.Empty;
+    }
+}
+
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+    .alert {
+        margin-top: 20px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .close {
+        color: #000;
+        opacity: 0.5;
+    }
+
+        .close:hover {
+            color: #000;
+            opacity: 0.75;
+        }
+</style>

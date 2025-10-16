@@ -1,0 +1,222 @@
+﻿@page "/AiChatBot"
+
+@using AdminTool.Hubs
+@using AdminTool.Services.Login
+@using Anthropic.SDK.Constants
+@using Anthropic.SDK.Messaging
+@using Library.Helper
+@using Microsoft.AspNetCore.Http.Connections
+@using Microsoft.AspNetCore.SignalR.Client
+@using OpenAI_API.Models
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+@inject ITokenService TokenService
+@inject ILocalStorageService LocalStorage
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<PageTitle>AiChatBot</PageTitle>
+
+<div>&nbsp;</div>
+<h3>AiChatBot</h3>
+
+<div>&nbsp;</div>
+<div class="form-group">
+    <label>모델 선택:</label>
+    <label>
+        <select @bind="_selectedModel">
+            @foreach (var model in _availableModels)
+            {
+                <option value="@model">@model</option>
+            }
+        </select>
+    </label>    
+    
+    <label>MaxToken:</label>
+    <label>
+        <input type="number" @bind="_maxTokenInput" size="10" />
+        <!-- MaxToken은 AI가 응답할 때 사용할 최대 토큰 수를 설정합니다. -->
+    </label>
+
+    <label>SystemMessage:</label>
+    <label>
+        <textarea @bind="_systemMessageInput" rows="5" cols="50"></textarea>
+        <!-- SystemMessage는 AI의 응답 방식을 설정하는 메시지입니다. -->
+    </label>
+
+    <label>Message:</label>
+    <label>
+        <textarea @bind="_messageInput" rows="5" cols="50"></textarea>
+        <!-- Message는 사용자가 AI에게 보낼 메시지입니다. -->
+    </label>
+    
+</div>
+<button @onclick="Send" disabled="@(!IsConnected || _isLoading)">보내기</button>
+<button @onclick="InitialMessages" disabled="@(!IsConnected || _isLoading)">과거 채팅 내용 초기화</button>
+
+@if (_isLoading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+}
+
+<hr>
+
+<ul id="messagesList" style="max-width: 2000px; ">
+    @foreach (var message in _messages)
+    {
+        <li>@message</li>
+    }
+</ul>
+
+@code {
+    private HubConnection? _hubConnection;
+    private List<string> _messages = new List<string>();
+    private List<AiChatBotMessage> _aiMessages = new List<AiChatBotMessage>();
+
+    private string? _systemMessageInput;
+    private string? _messageInput;
+    private int _maxTokenInput;
+    private string _userName = string.Empty;
+    private bool _isLoading = false;
+    private string _selectedModel = AnthropicModels.Claude35Sonnet; // 기본 선택 모델
+    private List<string> _availableModels = new List<string> { 
+        AnthropicModels.Claude3Sonnet, 
+        AnthropicModels.Claude3Opus,
+        AnthropicModels.Claude3Haiku,
+        AnthropicModels.Claude35Sonnet,
+        // ChatGpt
+        Model.ChatGPTTurbo.ModelID, // 3.5 turbo
+        Model.ChatGPTTurbo_1106.ModelID, // 3.5 turbo
+        Model.ChatGPTTurbo_16k.ModelID, // 3.5 turbo
+        Model.ChatGPTTurboInstruct.ModelID, // 3.5 turbo
+        "ft:gpt-3.5-turbo-0125:personal::9jO0gxrd",
+    }; // 사용할 모델 목록
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _maxTokenInput = ConstInfo.ClaudeApiMaxToken;
+                _systemMessageInput = "Answer with a lot of vocabulary. Respond only in Korea.";
+
+                var tokenStr = await LocalStorage.GetItemAsync("authToken");
+                var token = TokenService.ReadToken(tokenStr);
+                var nameClaim = token.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
+
+                _userName = nameClaim?.Value ?? string.Empty;
+
+                _hubConnection = new HubConnectionBuilder()
+                    .WithUrl(Navigation.ToAbsoluteUri("/aibothub"), options =>
+                    {
+                        options.AccessTokenProvider = () => Task.FromResult<string?>(tokenStr);
+                        options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets;
+                    })
+                    .Build();
+
+                // 최소 설정 가능한 값 5초
+                _hubConnection.KeepAliveInterval = TimeSpan.FromSeconds(5);
+                _hubConnection.ServerTimeout = TimeSpan.FromSeconds(30);
+
+                _hubConnection.On<AiChatBotMessageResponse>("MessageToClient", (message) =>
+                {
+                    _messageInput = string.Empty;
+
+                    var messageObj = message.Message;
+                    var chat = $"{message.UserId}: {messageObj}";
+                    _messages.Add(chat);
+
+                    _aiMessages.Add(new AiChatBotMessage
+                        {
+                            AiRole = AiRole.Assist,
+                            Message = messageObj,
+                        });
+
+                    _isLoading = false;
+                    InvokeAsync(StateHasChanged);
+                });
+
+                _hubConnection.On<string>("Enter", (message) =>
+                {
+                    _messages.Add(message);
+                    InvokeAsync(StateHasChanged);
+                });
+
+                _hubConnection.On<string>("Exit", (message) =>
+                {
+                    _messages.Add(message);
+                    InvokeAsync(StateHasChanged);
+                });
+
+                await _hubConnection.StartAsync();
+            }
+            catch (Exception)
+            {
+                Navigation.NavigateTo("/login", true);
+            }
+            
+        }
+    }
+
+    private async Task Send()
+    {        
+        if (_hubConnection is not null && !string.IsNullOrEmpty(_messageInput) && _maxTokenInput > 0)
+        {
+            _isLoading = true;
+            StateHasChanged();
+
+            var userName = _userName;
+
+            _aiMessages.Add(new AiChatBotMessage{
+                    AiRole = AiRole.User,
+                    Message = _messageInput,
+                });
+
+            var request = new AiChatBotMessageRequest
+                {
+                    UserId = userName,
+                    SystemMessage = _systemMessageInput ?? string.Empty,                    
+                    MaxTokens = _maxTokenInput,
+                    AiModel = _selectedModel ,
+                    Messages = _aiMessages,
+                };
+            var toMessage = "ChatGptMessageToServer";
+            
+            if (_selectedModel == AnthropicModels.Claude3Sonnet
+                || _selectedModel == AnthropicModels.Claude3Opus
+                || _selectedModel == AnthropicModels.Claude3Haiku
+                || _selectedModel == AnthropicModels.Claude35Sonnet)
+            {                
+                toMessage = "Cluade3MessageToServer";
+            }
+
+            
+            await _hubConnection.SendAsync(toMessage, request);
+
+            var chat = $"{userName}: {_messageInput}";
+            _messages.Add(chat); // 내가 쓴글
+        }
+    }
+
+    private void InitialMessages()
+    {
+        _aiMessages = new();
+        _messages = new();
+        StateHasChanged();
+    }
+
+    public bool IsConnected =>
+        _hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+}

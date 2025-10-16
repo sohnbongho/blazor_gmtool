@@ -1,0 +1,304 @@
+﻿@page "/Service/Notice/NoticeBoard"
+@using AdminTool.Services.Notice
+@using Library.DBTables.MySql
+@using Library.DTO
+@using Library.Data.Models
+@using Library.Helper
+@using AdminTool.Models
+
+@inject INoticeBoardService NoticeBoardService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h3>Notice Board</h3>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h4>Create New Notice</h4>
+            <div class="form-group mb-3">
+                <label for="noticeTitle" class="form-label">Title</label>
+                <input type="text" id="noticeTitle" class="form-control" @bind="NoticeTitle" maxlength="63" placeholder="Enter notice title" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="deviceType" class="form-label">Device Type</label>
+                <select id="deviceType" class="form-select" @bind="NoticeBoardType">
+                    <option value="@NoticeBoardType.Event">Event</option>
+                    <option value="@NoticeBoardType.Update">Update</option>
+                    <option value="@NoticeBoardType.System">System</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label for="KorTitle" class="form-label">Title(한글)</label>
+                <textarea id="KorTitle" class="form-control" @bind="KorTitle" rows="3" maxlength="1023" placeholder="Enter notice Title"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="EngTitle" class="form-label">Title(영어)</label>
+                <textarea id="EngTitle" class="form-control" @bind="EngTitle" rows="3" maxlength="1023" placeholder="Enter notice Title"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="ZhsTitle" class="form-label">Title(중국어 간체)</label>
+                <textarea id="ZhsTitle" class="form-control" @bind="ZhsTitle" rows="3" maxlength="1023" placeholder="Enter notice Title"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="ZhtTitle" class="form-label">Title(중국어 번체)</label>
+                <textarea id="ZhtTitle" class="form-control" @bind="ZhtTitle" rows="3" maxlength="1023" placeholder="Enter notice Title"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="SpaTitle" class="form-label">Title(스페인어)</label>
+                <textarea id="SpaTitle" class="form-control" @bind="SpaTitle" rows="3" maxlength="1023" placeholder="Enter notice Title"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="ThaTitle" class="form-label">Title(태국어)</label>
+                <textarea id="ThaTitle" class="form-control" @bind="ThaTitle" rows="3" maxlength="1023" placeholder="Enter notice Title"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="VieTitle" class="form-label">Title(베트남어)</label>
+                <textarea id="VieTitle" class="form-control" @bind="VieTitle" rows="3" maxlength="1023" placeholder="Enter notice Title"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="JpnTitle" class="form-label">Title(일본)</label>
+                <textarea id="JpnTitle" class="form-control" @bind="JpnTitle" rows="3" maxlength="1023" placeholder="Enter notice Title"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="KorContent" class="form-label">Content(한글)</label>
+                <textarea id="KorContent" class="form-control" @bind="KorContent" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="EngContent" class="form-label">Content(영어)</label>
+                <textarea id="EngContent" class="form-control" @bind="EngContent" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="ZhsContent" class="form-label">Content(중국어 간체)</label>
+                <textarea id="ZhsContent" class="form-control" @bind="ZhsContent" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="ZhtContent" class="form-label">Content(중국어 번체)</label>
+                <textarea id="ZhtContent" class="form-control" @bind="ZhtContent" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="SpaContent" class="form-label">Content(스페인어)</label>
+                <textarea id="SpaContent" class="form-control" @bind="SpaContent" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="ThaContent" class="form-label">Content(태국어)</label>
+                <textarea id="ThaContent" class="form-control" @bind="ThaContent" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="VieContent" class="form-label">Content(베트남어)</label>
+                <textarea id="VieContent" class="form-control" @bind="VieContent" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="JpnContent" class="form-label">Content(일본)</label>
+                <textarea id="JpnContent" class="form-control" @bind="JpnContent" rows="3" maxlength="1023" placeholder="Enter notice content"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="noticeDate" class="form-label">Expiry Date</label>
+                <input type="datetime-local" id="noticeDate" class="form-control" @bind="NoticeExpiryDate" />
+            </div>
+            <button class="btn btn-primary" @onclick="AddNotice">Add Notice</button>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Notice List</h4>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>NoticeSeq</th>
+                        <th>NoticeType</th>
+                        <th>Title</th>                        
+                        <th>Title_Kor</th>
+                        <th>Kor</th>
+                        <th>Title_Eng</th>
+                        <th>Eng</th>
+                        <th>Title_중국어 간체</th>
+                        <th>중국어 간체</th>
+                        <th>Title_중국어 번체</th>
+                        <th>중국어 번체</th>
+                        <th>Title_스페인어</th>
+                        <th>스페인어</th>
+                        <th>Title_태국어</th>
+                        <th>태국어</th>
+                        <th>Title_베트남어</th>
+                        <th>베트남어</th>
+                        <th>Title_일본</th>
+                        <th>일본</th>
+                        <th>Expiry Date</th>
+                        <th>Update Date</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var notice in Notices)
+                    {
+                        <tr>
+                            <td>@notice.Id</td>
+                            <td>@notice.NoticeSeq</td>
+                            <td>@notice.NoticeBoardType</td>
+                            <td>@notice.Title</td>   
+                            <td>@(notice.Contents[LanguageCode.Kor]?.Title ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Kor]?.Content ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Eng]?.Title ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Eng]?.Content ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Zhs]?.Title ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Zhs]?.Content ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Zht]?.Title ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Zht]?.Content ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Spa]?.Title ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Spa]?.Content ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Tha]?.Title ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Tha]?.Content ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Vie]?.Title ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Vie]?.Content ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Jpn]?.Title ?? string.Empty)</td>
+                            <td>@(notice.Contents[LanguageCode.Jpn]?.Content ?? string.Empty)</td>
+                            <td>@notice.ExpiryDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@notice.UpdatedDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@notice.CreatedDate?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteNotice(notice.NoticeSeq)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string NoticeTitle { get; set; } = string.Empty;
+
+    private string KorTitle { get; set; } = string.Empty;
+    private string EngTitle { get; set; } = string.Empty;
+    private string ZhsTitle { get; set; } = string.Empty; // 중국어 간체
+    private string ZhtTitle { get; set; } = string.Empty; // 중국어 번체
+    private string SpaTitle { get; set; } = string.Empty;  
+    private string ThaTitle { get; set; } = string.Empty; 
+    private string VieTitle { get; set; } = string.Empty; 
+    private string JpnTitle { get; set; } = string.Empty; 
+    
+    private string KorContent { get; set; } = string.Empty;
+    private string EngContent { get; set; } = string.Empty;
+    private string ZhsContent { get; set; } = string.Empty; // 중국어 간체
+    private string ZhtContent { get; set; } = string.Empty; // 중국어 번체
+    private string SpaContent { get; set; } = string.Empty;  
+    private string ThaContent { get; set; } = string.Empty; 
+    private string VieContent { get; set; } = string.Empty; 
+    private string JpnContent { get; set; } = string.Empty; 
+    private DateTime NoticeExpiryDate { get; set; } = DateTimeHelper.Now + TimeSpan.FromDays(7); // 기본값: 현재 시간
+    private List<Models.NoticeBoardData> Notices { get; set; } = new List<Models.NoticeBoardData>();
+    private NoticeBoardType NoticeBoardType { get; set; } = NoticeBoardType.Event;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await UpdateNoticeAsync();
+        }
+    }
+
+
+    private async Task AddNotice()
+    {
+        if (!string.IsNullOrEmpty(NoticeTitle) && !string.IsNullOrEmpty(KorContent))
+        {
+            var contents = new Dictionary<string, NoticeBoardContentData>();
+            contents[LanguageCode.Kor] = new NoticeBoardContentData
+            {
+                Title = KorTitle,
+                Content = KorContent,
+            };
+
+            contents[LanguageCode.Eng] = new NoticeBoardContentData
+                {
+                    Title = EngTitle,
+                    Content = EngContent,
+                };
+            contents[LanguageCode.Zhs] = new NoticeBoardContentData
+                {
+                    Title = ZhsTitle,
+                    Content = ZhsContent,
+                };
+            contents[LanguageCode.Zht] = new NoticeBoardContentData
+                {
+                    Title = ZhtTitle,
+                    Content = ZhtContent,
+                };
+            contents[LanguageCode.Spa] = new NoticeBoardContentData
+                {
+                    Title = SpaTitle,
+                    Content = SpaContent,
+                };
+            contents[LanguageCode.Tha] = new NoticeBoardContentData
+                {
+                    Title = ThaTitle,
+                    Content = ThaContent,
+                };
+            contents[LanguageCode.Vie] = new NoticeBoardContentData
+                {
+                    Title = VieTitle,
+                    Content = VieContent,
+                };
+            contents[LanguageCode.Jpn] = new NoticeBoardContentData
+                {
+                    Title = JpnTitle,
+                    Content = JpnContent,
+                };           
+            
+
+            var success = await NoticeBoardService.AddNoticeAsync(new Models.NoticeBoardData
+            {
+                Title = NoticeTitle,
+                NoticeBoardType = NoticeBoardType,
+                Contents = contents,
+                ExpiryDate = NoticeExpiryDate,
+            });
+
+            KorTitle = string.Empty;
+            EngTitle = string.Empty;
+            ZhsTitle = string.Empty;
+            ZhtTitle = string.Empty;
+            SpaTitle = string.Empty;
+            ThaTitle = string.Empty;
+            VieTitle = string.Empty;
+            JpnTitle = string.Empty;
+            
+            KorContent = string.Empty;
+            EngContent = string.Empty;
+            ZhsContent = string.Empty;
+            ZhtContent = string.Empty;
+            SpaContent = string.Empty;
+            ThaContent = string.Empty;
+            VieContent = string.Empty;
+            JpnContent = string.Empty;
+
+            await UpdateNoticeAsync();
+        }
+    }
+
+    private async Task DeleteNotice(ulong noticeId)
+    {
+        var success = await NoticeBoardService.DeleteNoticeAsync(noticeId);
+
+        if (success)
+        {
+            await UpdateNoticeAsync();
+        }
+    }
+
+    private async Task<bool> UpdateNoticeAsync()
+    {
+        Notices = await NoticeBoardService.FetchNoticesAsync();
+        StateHasChanged();
+
+        return true;
+    }
+}

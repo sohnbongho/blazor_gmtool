@@ -1,0 +1,151 @@
+﻿@page "/register"
+@using AdminTool.Services.Login
+@using System.ComponentModel.DataAnnotations
+@using AdminTool.Services.Account
+
+@inject NavigationManager Navigation
+@inject IAccountService AccountService
+
+<h3>Create Account</h3>
+
+<EditForm Model="@registerModel" OnValidSubmit="@HandleRegister">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Username:</label>
+        <InputText @bind-Value="registerModel.Username" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>UserDesc:</label>
+        <InputText @bind-Value="registerModel.UserDesc" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Password:</label>
+        <InputText @bind-Value="registerModel.Password" type="password" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Confirm Password:</label>
+        <InputText @bind-Value="registerModel.ConfirmPassword" type="password" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Create Account</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+    var statusMessageClass = _statusMessage.StartsWith("success") ? "alert-success" : "alert-danger";
+    <div class="alert @statusMessageClass alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        @_statusMessage
+    </div>
+}
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+    private string _statusMessage = string.Empty;
+
+    private async Task HandleRegister()
+    {
+        if (registerModel.Password != registerModel.ConfirmPassword)
+        {
+            _statusMessage = "Passwords do not match.";
+            return;
+        }
+        var has = await AccountService.HasUserAsync(registerModel.Username);
+        if (has)
+        {
+            _statusMessage = "유저가 이미 존재합니다.";
+            return;
+        }
+
+        var result = await AccountService.RegisterAsync(registerModel.Username, registerModel.Password, registerModel.UserDesc);
+        if (result)
+        {
+            _statusMessage = "success: Account created successfully!";
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            _statusMessage = "Account creation failed. fail to update db.";
+        }
+    }
+
+    public class RegisterModel
+    {
+        [Required]
+        [StringLength(16)]
+        public string Username { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(16)]
+        public string UserDesc { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(10, MinimumLength = 4, ErrorMessage = "Password must be at least 6 characters long.")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}
+
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+    .alert {
+        margin-top: 20px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .close {
+        color: #000;
+        opacity: 0.5;
+    }
+
+        .close:hover {
+            color: #000;
+            opacity: 0.75;
+        }
+</style>

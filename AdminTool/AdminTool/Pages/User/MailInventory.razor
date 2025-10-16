@@ -1,0 +1,62 @@
+﻿@page "/User/Detail/Mail"
+@using AdminTool.Services.User
+@using AdminTool.Repositories.User
+@using AdminTool.Services.Inventory
+@using AdminTool.Models
+@using Library.DBTables.MySql
+
+@inject IInventoryService InventoryService
+
+@attribute [Authorize]
+<CheckedLogin />
+
+<h1>Mail</h1>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="fieldSelect" class="form-label">Search by:</label>
+            <select id="fieldSelect" class="form-select" @bind="SelectedField">
+                <option value="userSeq">User Seq</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="searchValue" class="form-label">Enter value:</label>
+            <input type="text" id="searchValue" class="form-control" @bind="SearchValue" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="SearchUsers">Search</button>
+        </div>
+    </div>
+</div>
+
+<div>&nbsp;</div>
+@if (MailInfos != null && MailInfos.Any())
+{    
+    <TableWithPaging TItem="MailPresent" Data="@MailInfos" RowsPerPage=10
+                     VisibleExcelUploadedButton=false />
+}
+else if (MailInfos != null)
+{    
+    <p class="text-warning">Not found.</p>
+}
+
+
+@code {
+    private string SelectedField { get; set; } = "userSeq";
+    private string SearchValue { get; set; } = string.Empty;
+    private List<MailPresent>? MailInfos { get; set; } = null;
+
+    private async void SearchUsers()
+    {
+        if (!string.IsNullOrEmpty(SelectedField) && !string.IsNullOrEmpty(SearchValue))
+        {
+            MailInfos = await InventoryService.FetchMailAsync(SearchValue);
+        }
+        else
+        {
+            MailInfos = new List<MailPresent>();
+        }
+        StateHasChanged();
+    }    
+}
